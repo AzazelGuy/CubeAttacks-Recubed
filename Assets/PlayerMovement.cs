@@ -235,6 +235,8 @@ public class PlayerMovement : MonoBehaviour
             Mathf.Clamp(rb.velocity.x, -moveSpeed, moveSpeed),
             rb.velocity.y
         );
+
+        Debug.Log(rb.velocity);
     }
 
     // =========================================================================
@@ -311,5 +313,6 @@ public class PlayerMovement : MonoBehaviour
             Gizmos.DrawRay(wallCheck.position, Vector2.right * wallDistance);
             Gizmos.DrawRay(wallCheck.position, Vector2.left  * wallDistance);
         }
+
     }
 }
