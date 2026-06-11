@@ -101,7 +101,7 @@ public class PlayerMovement : MonoBehaviour
     void Awake()
     {
         rb  = GetComponent<Rigidbody2D>();
-        col = GetComponentInChildren<CapsuleCollider2D>();
+        col = GetComponent<CapsuleCollider2D>();
         spr = GetComponentInChildren<SpriteRenderer>();
 
         waitStartTimer = waitStartTime;
