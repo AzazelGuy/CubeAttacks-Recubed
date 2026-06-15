@@ -134,11 +134,12 @@ public class PlayerMovement : MonoBehaviour
         rb.sharedMaterial = (xInput == 0 && isGrounded) ? fullFriction : noFriction;
 
         // --- Lógica de gravidade e estado ---
+        // --- Lógica de gravidade e estado ---
         if (isGrounded)
         {
             coyoteTimer = coyoteTimeMax;
 
-            if (!Input.GetButtonDown("Jump") && !inWater)
+            if (!Input.GetButtonDown("Jump"))
             {
                 rb.gravityScale = 3f;
                 snap = true;
@@ -158,8 +159,9 @@ public class PlayerMovement : MonoBehaviour
                     Mathf.Max(rb.velocity.y, -wallSlideSpeed)
                 );
             }
-            else if (!Input.GetButtonDown("Jump") && !inWater)
+            else
             {
+                // Se não está no chão e não está dando wall slide, a gravidade DEVE ser 10f
                 rb.gravityScale = 10f;
             }
 
@@ -236,7 +238,7 @@ public class PlayerMovement : MonoBehaviour
             rb.velocity.y
         );
 
-        Debug.Log(rb.velocity);
+        Debug.Log($"On Wall: {onWall}, on Floor: {isGrounded}");
     }
 
     // =========================================================================
@@ -246,6 +248,10 @@ public class PlayerMovement : MonoBehaviour
         coyoteTimer        = -10f; // invalida coyote time imediatamente
         snap               = false;
         snapBlockTimer     = snapBlockTime;
+
+
+        // Força a gravidade do pulo/ar imediatamente para evitar delays de frame
+        rb.gravityScale = 10f;
 
         // --- Wall Jump ---
         if (onWall && !isGrounded && !inWater)
@@ -265,7 +271,7 @@ public class PlayerMovement : MonoBehaviour
         }
 
         // --- Pulo Normal ---
-        if (!inWater) rb.gravityScale = 0f;
+        //if (!inWater) rb.gravityScale = 0f;
         rb.velocity = new Vector2(rb.velocity.x, 0f);
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
     }
