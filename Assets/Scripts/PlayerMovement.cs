@@ -321,4 +321,9 @@ public class PlayerMovement : MonoBehaviour
         }
 
     }
+
+    public bool isFlipped()
+    {
+        return  (spr.transform.localScale.x == -1) ;
+    }
 }
