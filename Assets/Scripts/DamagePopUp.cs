@@ -5,7 +5,8 @@ public class DamagePopUp : MonoBehaviour
 {
     private TextMeshPro textMesh;
     private float disappearTimer = 1f;
-    private Color textColor;
+    [SerializeField] private Color textColor;
+    [SerializeField] private Gradient CRITICALColor;
 
     [SerializeField] private float moveYSpeed = 2f;
     [SerializeField] private float disappearSpeed = 3f;
@@ -20,6 +21,13 @@ public class DamagePopUp : MonoBehaviour
     {
         textMesh.SetText(damageAmount.ToString());
         textColor = textMesh.color;
+    }
+    public void ONCRIT()
+    {
+        Color top = CRITICALColor.Evaluate(0f);
+        Color bottom = CRITICALColor.Evaluate(0f);
+        textMesh.fontSize = 14f;
+        textMesh.colorGradient = new VertexGradient(top, top, bottom, bottom);
     }
 
     private void Update()

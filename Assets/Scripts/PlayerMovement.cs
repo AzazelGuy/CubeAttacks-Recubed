@@ -4,21 +4,23 @@ public class PlayerMovement : MonoBehaviour
 {
     // -------------------------------------------------------------------------
     // REFERÊNCIAS DE COMPONENTES
-    // Públicas para performance (sem overhead de GetComponent em runtime)
     // -------------------------------------------------------------------------
     [HideInInspector] public Rigidbody2D rb;
     [HideInInspector] public CapsuleCollider2D col;
     [HideInInspector] public SpriteRenderer spr;
+    [SerializeField] private WeaponController weaponController;
 
     // -------------------------------------------------------------------------
-    // MOVIMENTO HORIZONTAL
+    // MOVIMENTO HORIZONTAL (Com Aceleração e Derrapagem)
     // -------------------------------------------------------------------------
     [Header("Movimento")]
     [SerializeField] float moveSpeed = 8f;
-    [Tooltip("Quanto o jogador acelera até a velocidade máxima (0 = instantâneo, 1 = nunca chega)")]
+    [Tooltip("Quanto o jogador acelera até a velocidade máxima")]
     [SerializeField] float acceleration = 0.12f;
-    [Tooltip("Quanto o jogador desacelera ao soltar o input (cria o 'slide')")]
+    [Tooltip("Quanto o jogador desacelera ao soltar o input (slide passivo)")]
     [SerializeField] float deceleration = 0.18f;
+    [Tooltip("Força da derrapagem ao tentar mudar de direção correndo (valores maiores travam o drift mais rápido)")]
+    [SerializeField] float skidDeceleration = 0.4f;
 
     // -------------------------------------------------------------------------
     // PULO
@@ -27,15 +29,12 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float jumpForce = 12f;
     [SerializeField] float wallJumpForce = 12f;
 
-    [Tooltip("Tempo extra para pular após sair da borda (Coyote Time)")]
     [SerializeField] float coyoteTimeMax = 0.12f;
     float coyoteTimer;
 
-    [Tooltip("Janela de tempo para buffering do input de pulo")]
     [SerializeField] float jumpBufferTime = 0.1f;
     float jumpBufferTimer;
 
-    // Bloqueia o pulo por um frame para evitar pulos duplos acidentais
     [SerializeField] float jumpBlockTime = 0.08f;
     float jumpBlockTimer;
 
@@ -47,7 +46,6 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float groundDistance = 0.2f;
     [SerializeField] LayerMask groundLayer;
 
-    [Tooltip("Bloqueia a detecção de chão logo após o pulo, evitando redetecção imediata")]
     [SerializeField] float groundDisableTime = 0.1f;
     float groundDisableTimer;
 
@@ -55,11 +53,6 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] PhysicsMaterial2D fullFriction;
 
     bool isGrounded;
-
-    // Snap cola o jogador no chão ao descer rampas, evitando que ele "voe"
-    bool snap;
-    [SerializeField] float snapBlockTime = 0.1f;
-    float snapBlockTimer;
 
     // -------------------------------------------------------------------------
     // PAREDE / WALL JUMP
@@ -69,11 +62,9 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float wallDistance = 0.2f;
     [SerializeField] float wallSlideSpeed = 2f;
 
-    [Tooltip("Bloqueia novo wall jump por um tempo para o jogador subir sem re-colar na parede")]
     [SerializeField] float wallJumpBlockTime = 0.2f;
     float wallJumpBlockTimer;
 
-    [Tooltip("Bloqueia input horizontal brevemente após wall jump para manter a trajetória")]
     [SerializeField] float moveBlockTime = 0.15f;
     float moveBlockTimer;
 
@@ -84,8 +75,6 @@ public class PlayerMovement : MonoBehaviour
     // -------------------------------------------------------------------------
     [Header("Outros")]
     [SerializeField] bool inWater;
-
-    [Tooltip("Delay inicial antes do jogador poder se mover (ex: cutscene de início)")]
     [SerializeField] float waitStartTime = 0.5f;
     float waitStartTimer;
 
@@ -110,44 +99,35 @@ public class PlayerMovement : MonoBehaviour
     // =========================================================================
     void Update()
     {
-        // --- Física e detecção ---
         CheckGround();
         CheckWall();
 
-        // Input horizontal: -1, 0 ou 1
         xInput = Mathf.Round(Input.GetAxisRaw("Horizontal"));
 
-        // --- Tick de timers ---
+        // Tick de timers
         waitStartTimer     -= Time.deltaTime;
-        snapBlockTimer     -= Time.deltaTime;
         moveBlockTimer     -= Time.deltaTime;
         jumpBlockTimer     -= Time.deltaTime;
         jumpBufferTimer    -= Time.deltaTime;
         wallJumpBlockTimer -= Time.deltaTime;
         groundDisableTimer -= Time.deltaTime;
 
-        // Libera movimento após o delay inicial
         if (waitStartTimer <= 0f) moving = true;
 
-        // --- Material de fricção ---
-        // Fricção total apenas quando parado no chão; fora disso, sem fricção (slide)
-        rb.sharedMaterial = (xInput == 0 && isGrounded) ? fullFriction : noFriction;
+        // Atrito estático aplicado apenas se não houver comando e estiver parado no chão
+        rb.sharedMaterial = (xInput == 0 && isGrounded && Mathf.Abs(rb.velocity.x) < 0.05f) ? fullFriction : noFriction;
 
-        // --- Lógica de gravidade e estado ---
-        // --- Lógica de gravidade e estado ---
+        // Gravidade com base no estado do pulo
         if (isGrounded)
         {
             coyoteTimer = coyoteTimeMax;
-
             if (!Input.GetButtonDown("Jump"))
             {
                 rb.gravityScale = 3f;
-                snap = true;
             }
         }
         else
         {
-            // Wall slide: limita a velocidade de queda enquanto encostado na parede
             bool canWallSlide = xInput != 0 && onWall
                              && !Input.GetButtonDown("Jump")
                              && wallJumpBlockTimer <= 0;
@@ -161,30 +141,36 @@ public class PlayerMovement : MonoBehaviour
             }
             else
             {
-                // Se não está no chão e não está dando wall slide, a gravidade DEVE ser 10f
                 rb.gravityScale = 10f;
             }
 
             coyoteTimer -= Time.deltaTime;
-
-            // Desativa snap quando não há mais coyote time nem buffer
-            if (coyoteTimer <= 0 || jumpBufferTimer <= 0)
-                snap = false;
         }
 
         // --- Flip do sprite ---
-        if (xInput > 0 && moveBlockTimer <= 0)
+        if (!weaponController.alert)
         {
-            dir = 1;
-            spr.transform.localScale = new Vector3(1f, spr.transform.localScale.y, 1f);
+            if (xInput > 0 && moveBlockTimer <= 0)
+            {
+                dir = 1;
+                spr.transform.localScale = new Vector3(1f, spr.transform.localScale.y, 1f);
+            }
+            else if (xInput < 0 && moveBlockTimer <= 0)
+            {
+                dir = -1;
+                spr.transform.localScale = new Vector3(-1f, spr.transform.localScale.y, 1f);
+            }
         }
-        else if (xInput < 0 && moveBlockTimer <= 0)
+        else
         {
-            dir = -1;
-            spr.transform.localScale = new Vector3(-1f, spr.transform.localScale.y, 1f);
+            Vector3 mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            mouseWorldPosition.z = 0f;
+
+            Vector2 mdirection = mouseWorldPosition - transform.position;
+            dir = (mdirection.x < 0) ? -1 : 1;
+            spr.transform.localScale = new Vector3(dir, spr.transform.localScale.y, 1f);
         }
 
-        // --- Buffer de pulo ---
         if (Input.GetButtonDown("Jump"))
             jumpBufferTimer = jumpBufferTime;
     }
@@ -196,7 +182,7 @@ public class PlayerMovement : MonoBehaviour
 
         Move();
 
-        // Pulo com Coyote Time + buffer + wall jump
+        // Pulo
         bool canJump = jumpBufferTimer > 0
                     && (coyoteTimer > 0 || onWall)
                     && jumpBlockTimer < 0;
@@ -208,19 +194,10 @@ public class PlayerMovement : MonoBehaviour
             coyoteTimer     = 0f;
             Jump();
         }
-
-        // Snap: mantém o jogador "colado" ao chão em rampas
-        if (snap && jumpBufferTimer <= 0 && snapBlockTimer <= 0)
-        {
-            rb.velocity = new Vector2(
-                rb.velocity.x,
-                Mathf.Lerp(rb.velocity.y, -rb.gravityScale, 0.5f)
-            );
-        }
     }
 
     // =========================================================================
-    // MOVIMENTO HORIZONTAL COM LERP (gera o "slide" suave)
+    // MOVIMENTO HORIZONTAL MODIFICADO COM DETECÇÃO DE DERRAPAGEM
     // =========================================================================
     void Move()
     {
@@ -228,29 +205,43 @@ public class PlayerMovement : MonoBehaviour
 
         float targetVelocity = xInput * moveSpeed;
         float speedDiff = targetVelocity - rb.velocity.x;
-        float forceFactor = (xInput != 0) ? acceleration : deceleration;
+        float forceFactor;
+
+        if (xInput != 0)
+        {
+            // DERRAPAGEM: Só acontece se estiver no CHÃO (isGrounded), mudando de direção e com velocidade
+            if (isGrounded && Mathf.Sign(xInput) != Mathf.Sign(rb.velocity.x) && Mathf.Abs(rb.velocity.x) > 0.5f)
+            {
+                forceFactor = skidDeceleration; // Frena forte no chão (Drift)
+            }
+            else
+            {
+                forceFactor = acceleration; // Aceleração normal (tanto correndo em linha reta quanto no ar)
+            }
+        }
+        else
+        {
+            forceFactor = deceleration; // Desaceleração passiva ao soltar o botão
+        }
 
         rb.AddForce(Vector2.right * speedDiff * forceFactor, ForceMode2D.Force);
 
-        // Clamp para não ultrapassar o moveSpeed
-        rb.velocity = new Vector2(
-            Mathf.Clamp(rb.velocity.x, -moveSpeed, moveSpeed),
-            rb.velocity.y
-        );
-
-        Debug.Log($"On Wall: {onWall}, on Floor: {isGrounded}");
+        // Mantém o Clamp original
+        if (xInput != 0)
+        {
+            rb.velocity = new Vector2(
+                Mathf.Clamp(rb.velocity.x, -moveSpeed, moveSpeed),
+                rb.velocity.y
+            );
+        }
     }
 
     // =========================================================================
     void Jump()
     {
         groundDisableTimer = groundDisableTime;
-        coyoteTimer        = -10f; // invalida coyote time imediatamente
-        snap               = false;
-        snapBlockTimer     = snapBlockTime;
+        coyoteTimer        = -10f;
 
-
-        // Força a gravidade do pulo/ar imediatamente para evitar delays de frame
         rb.gravityScale = 10f;
 
         // --- Wall Jump ---
@@ -261,17 +252,15 @@ public class PlayerMovement : MonoBehaviour
             moveBlockTimer     = moveBlockTime;
             wallJumpBlockTimer = wallJumpBlockTime;
 
-            rb.AddForce(Vector2.up          * jumpForce,            ForceMode2D.Impulse);
-            rb.AddForce(Vector2.right * (-dir * wallJumpForce),     ForceMode2D.Impulse);
+            rb.AddForce(Vector2.up    * jumpForce, ForceMode2D.Impulse);
+            rb.AddForce(Vector2.right * (-dir * wallJumpForce), ForceMode2D.Impulse);
 
-            // Inverte direção do sprite
-            dir *= -1;
+            if (!weaponController.alert) dir *= -1;
             spr.transform.localScale = new Vector3(dir, spr.transform.localScale.y, 1f);
             return;
         }
 
         // --- Pulo Normal ---
-        //if (!inWater) rb.gravityScale = 0f;
         rb.velocity = new Vector2(rb.velocity.x, 0f);
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
     }
@@ -279,7 +268,6 @@ public class PlayerMovement : MonoBehaviour
     // =========================================================================
     void CheckGround()
     {
-        // Se o timer de desativação está ativo, força isGrounded = false
         if (groundDisableTimer > 0)
         {
             isGrounded = false;
@@ -309,6 +297,17 @@ public class PlayerMovement : MonoBehaviour
     }
 
     // =========================================================================
+    public void AplicarEmpurraoRecuo(Vector2 forçaEmpurrao, float tempoBloqueioMovimento)
+    {
+        moveBlockTimer = tempoBloqueioMovimento;
+
+        // Reseta o eixo vertical se quiser saltar atirando, mas preserva o horizontal para somar o impacto
+        rb.velocity = new Vector2(rb.velocity.x, Mathf.Max(0, rb.velocity.y));
+
+        rb.AddForce(forçaEmpurrao, ForceMode2D.Impulse);
+    }
+
+    // =========================================================================
     void OnDrawGizmos()
     {
         if (groundCheck != null)
@@ -319,11 +318,10 @@ public class PlayerMovement : MonoBehaviour
             Gizmos.DrawRay(wallCheck.position, Vector2.right * wallDistance);
             Gizmos.DrawRay(wallCheck.position, Vector2.left  * wallDistance);
         }
-
     }
 
     public bool isFlipped()
     {
-        return  (spr.transform.localScale.x == -1) ;
+        return (spr.transform.localScale.x == -1);
     }
 }

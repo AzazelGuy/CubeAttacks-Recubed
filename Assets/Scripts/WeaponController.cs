@@ -11,11 +11,16 @@ public class WeaponController : MonoBehaviour
     public Transform gunPivot;
     public Transform canoDaArma; // Crie um Empty Object na ponta da arma e arraste aqui
     public SpriteRenderer gunsprite;
-
+    [SerializeField] private Rigidbody2D playerRb; // Arraste o Rigidbody2D do seu Player aqui no Inspector
 
     [SerializeField] private LayerMask targetLayers;
     [SerializeField] private float rotateSpeed;
     [SerializeField] private PlayerMovement playerMovement;
+
+    // --- VARIÁVEIS DE ALERTA/ISQUEIRO DA ARMA ---
+    [HideInInspector] public bool alert = false;
+    private float alertTimer;
+    [SerializeField] private float alertTime = 5f; // Ajustado para 5 segundos conforme pediu
 
     private enum FireMode
     {
@@ -48,6 +53,9 @@ public class WeaponController : MonoBehaviour
         {
             bulletAmmount[i] = Arsenal[i].BulletsMax;
         }
+
+        // Começa com a arma guardada
+        ResetarAlerta(false);
         UpdateWeaponAppearance();
     }
 
@@ -56,9 +64,11 @@ public class WeaponController : MonoBehaviour
         xDir = Input.GetAxisRaw("Horizontal");
         yDir = Input.GetAxisRaw("Vertical");
 
+
         GunRotation(xDir, yDir);
         handleFire();
         handleSwap();
+        HandleAlertTimer(); // Lógica para contar o tempo do coldre
 
         // Evita erro se o arsenal começar vazio por algum motivo
         if (Arsenal.Count > 0)
@@ -68,7 +78,32 @@ public class WeaponController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Tab))
         {
-            if (currAim == FireMode._8directional){ currAim = FireMode.mouseAim; } else { currAim = FireMode._8directional; }
+            if (currAim == FireMode._8directional) { currAim = FireMode.mouseAim; } else { currAim = FireMode._8directional; }
+        }
+    }
+
+    // Gerencia o tempo que a arma fica exposta
+    private void HandleAlertTimer()
+    {
+        if (alert)
+        {
+            alertTimer -= Time.deltaTime;
+            if (alertTimer <= 0)
+            {
+                ResetarAlerta(false); // Esconde a arma
+            }
+        }
+    }
+
+    // Função auxiliar para ativar/desativar a arma visualmente
+    private void ResetarAlerta(bool estaAtivo)
+    {
+        alert = estaAtivo;
+        gunsprite.enabled = estaAtivo; // Liga ou desliga o sprite na tela
+
+        if (estaAtivo)
+        {
+            alertTimer = alertTime; // Reseta o cronômetro para 5 segundos
         }
     }
 
@@ -82,21 +117,18 @@ public class WeaponController : MonoBehaviour
 
                 if (direction != Vector2.zero)
                 {
-                    // CORREÇÃO: Calcula o ângulo baseado no input do jogador (teclado/analógico)
                     float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
 
                     float smoothAngle = Mathf.MoveTowardsAngle(
                         gunPivot.eulerAngles.z, angle, rotateSpeed * Time.deltaTime);
                     gunPivot.rotation = Quaternion.Euler(0, 0, smoothAngle);
 
-                    // Flip Y baseado para onde o analógico/teclado está apontando
                     Vector3 scale = gunPivot.localScale;
                     scale.y = (direction.x < 0) ? -1f : 1f;
                     gunPivot.localScale = scale;
                 }
                 else
                 {
-                    // Se não há input de mira, a arma apenas segue para onde o player está olhando de forma reta
                     int dir = playerMovement.isFlipped() ? -1 : 1;
 
                     float angle = Mathf.Atan2(0, dir) * Mathf.Rad2Deg;
@@ -152,9 +184,14 @@ public class WeaponController : MonoBehaviour
 
         WeaponData armaAtual = Arsenal[currentWeapon];
         bool querAtirar = false;
-        // Define se o gatilho responde a "segurar o botão" (automática) ou "clicar" (semi)
-        if (currAim == FireMode._8directional) {querAtirar = armaAtual.isAutomatic ? Input.GetKey(KeyCode.H) : Input.GetKeyDown(KeyCode.H); }
+        if (currAim == FireMode._8directional) { querAtirar = armaAtual.isAutomatic ? Input.GetKey(KeyCode.H) : Input.GetKeyDown(KeyCode.H); }
         if (currAim == FireMode.mouseAim) { querAtirar = armaAtual.isAutomatic ? Input.GetKey(KeyCode.Mouse0) : Input.GetKeyDown(KeyCode.Mouse0); }
+
+        // Se o player apertar para atirar, a arma saca imediatamente (mesmo se estiver sem balas ou em cooldown)
+        if (querAtirar)
+        {
+            ResetarAlerta(true);
+        }
 
         // Só atira se: Apertou o botão E o cooldown passou E tem munição
         if (querAtirar && Time.time >= nextFireTime && bulletAmmount[currentWeapon] > 0)
@@ -166,6 +203,26 @@ public class WeaponController : MonoBehaviour
 
     private void Atirar(WeaponData arma)
     {
+        // Garante que o timer vai renovar para 5 segundos ao efetivar o tiro
+        ResetarAlerta(true);
+
+        // --- SISTEMA DE MOVIMENTO POR RECUO ---
+        if (playerMovement != null && arma.recoilStrenght > 0)
+        {
+            // canoDaArma.right é para onde o tiro vai. Negativo (-) joga o jogador para trás.
+            Vector2 direcaoEmpurrao = -canoDaArma.right;
+
+            // Se a força do Scriptable Object for baseada no ângulo visual (ex: 5, 10, 15), 
+            // multiplicamos por um fator menor (ex: 0.3f) para não isolar o quadrado da tela.
+            float intensidadeForca = arma.recoilStrenght * 0.3f;
+            Vector2 vetorForcaFinal = direcaoEmpurrao * intensidadeForca;
+
+            // Tempo em segundos que o jogador perde o controle do teclado para o recuo agir (0.15s é ótimo)
+            float tempoBloqueioTeclado = 0.2f;
+
+            playerMovement.AplicarEmpurraoRecuo(vetorForcaFinal, tempoBloqueioTeclado);
+        }
+
         if (arma.firingMethod == WeaponData.firingType.Projectile)
         {
             bulletAmmount[currentWeapon]--;
@@ -176,7 +233,6 @@ public class WeaponController : MonoBehaviour
             return;
         }
 
-        // Armas automáticas pegam a imprecisão do WeaponData
         float erroAtual = arma.imprecisao;
 
         switch (arma.firingMethod)
@@ -185,7 +241,6 @@ public class WeaponController : MonoBehaviour
                 if (bulletAmmount[currentWeapon] >= 1)
                 {
                     bulletAmmount[currentWeapon]--;
-                    // Aplica imprecisão no tiro único (Rifle)
                     Vector2 dirComImprecisao = AplicarImprecisao(canoDaArma.right, erroAtual);
                     ExecutarRaycast(dirComImprecisao, arma.bulletDamage);
                 }
@@ -213,7 +268,6 @@ public class WeaponController : MonoBehaviour
         }
     }
 
-    // Função matemática para desviar levemente o tiro
     private Vector2 AplicarImprecisao(Vector2 direcaoOriginal, float anguloImprecisao)
     {
         if (anguloImprecisao <= 0) return direcaoOriginal;
@@ -235,7 +289,6 @@ public class WeaponController : MonoBehaviour
             hit.collider.GetComponent<EnemyBase>()?.onHit(dano);
         }
 
-        // VISUAL: Agora nós criamos um rastro independente para CADA raio
         if (rastroPrefab != null)
         {
             GameObject rastroObjeto = Instantiate(rastroPrefab, canoDaArma.position, Quaternion.identity);
@@ -248,7 +301,6 @@ public class WeaponController : MonoBehaviour
         }
     }
 
-    // Coroutine que cuida do rastro individual e depois destrói o objeto para não poluir a cena
     IEnumerator AnimarERestruirRastro(LineRenderer linha, Vector3 inicio, Vector3 fim)
     {
         linha.positionCount = 2;
@@ -258,11 +310,9 @@ public class WeaponController : MonoBehaviour
 
         yield return new WaitForSeconds(0.1f);
 
-        // Destrói o objeto do rastro após o tempo passar
         Destroy(linha.gameObject);
     }
 
-    // Cuidar da troca de armas
     private void handleSwap()
     {
         if (Input.GetKeyDown(KeyCode.E))
@@ -271,6 +321,7 @@ public class WeaponController : MonoBehaviour
             {
                 currentWeapon++;
                 UpdateWeaponAppearance();
+                ResetarAlerta(true); // Mostra a arma nova que acabou de puxar
             }
         }
         if (Input.GetKeyDown(KeyCode.Q))
@@ -279,6 +330,7 @@ public class WeaponController : MonoBehaviour
             {
                 currentWeapon--;
                 UpdateWeaponAppearance();
+                ResetarAlerta(true); // Mostra a arma nova que acabou de puxar
             }
         }
     }
@@ -289,5 +341,15 @@ public class WeaponController : MonoBehaviour
         {
             gunsprite.sprite = Arsenal[currentWeapon].WeaponImage;
         }
+    }
+
+    public void RecarregarArmas()
+    {
+        for (int i = 0; i < bulletAmmount.Length; i++)
+        {
+            bulletAmmount[i] = Arsenal[i].BulletsMax;
+        }
+
+        Debug.Log("Munição recarregada!");
     }
 }

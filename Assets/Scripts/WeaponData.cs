@@ -11,6 +11,7 @@ public class WeaponData : ScriptableObject
     public int WeaponIndex;
     public int BulletsMax;
     public float coolDownTime = 0.06f;
+    [Range(0f, 100f)] public float recoilStrenght = 0f;
     [Header("Configurações de Precisão")]
     [Range(0f, 20f)] public float imprecisao = 0.5f; // O quão "torta" a bala pode sair
     public enum firingType

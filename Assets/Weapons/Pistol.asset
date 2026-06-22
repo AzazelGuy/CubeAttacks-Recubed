@@ -17,6 +17,7 @@ MonoBehaviour:
   WeaponIndex: 0
   BulletsMax: 20
   coolDownTime: 0.06
+  recoilStrenght: 15.2
   imprecisao: 0.3
   firingMethod: 1
   bulletPrefab: {fileID: 0}
