@@ -59,7 +59,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 4693644553915996955, guid: 28f85f8ee1e302649b7f2e6473f42892, type: 2}
+  - {fileID: 5417769349691182497, guid: f470822070405584d8243fdbcc06f85c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -103,8 +103,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 99!
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 28f85f8ee1e302649b7f2e6473f42892, type: 2}
-  m_sharedMaterial: {fileID: 4693644553915996955, guid: 28f85f8ee1e302649b7f2e6473f42892, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: f470822070405584d8243fdbcc06f85c, type: 2}
+  m_sharedMaterial: {fileID: 5417769349691182497, guid: f470822070405584d8243fdbcc06f85c, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -115,10 +115,10 @@ MonoBehaviour:
   m_enableVertexGradient: 1
   m_colorMode: 2
   m_fontColorGradient:
-    topLeft: {r: 1, g: 0, b: 0, a: 1}
-    topRight: {r: 1, g: 0, b: 0, a: 1}
-    bottomLeft: {r: 0.2905661, g: 0.12445, b: 0.12445, a: 1}
-    bottomRight: {r: 0.2905661, g: 0.12445, b: 0.12445, a: 1}
+    topLeft: {r: 1, g: 0.11022433, b: 0, a: 1}
+    topRight: {r: 1, g: 0.11022433, b: 0, a: 1}
+    bottomLeft: {r: 0.047169805, g: 0.02914738, b: 0.02914738, a: 1}
+    bottomRight: {r: 0.047169805, g: 0.02914738, b: 0.02914738, a: 1}
   m_fontColorGradientPreset: {fileID: 0}
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0

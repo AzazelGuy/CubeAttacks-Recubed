@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
+    #region Variaveis
     // -------------------------------------------------------------------------
     // REFERÊNCIAS DE COMPONENTES
     // -------------------------------------------------------------------------
@@ -49,9 +50,6 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float groundDisableTime = 0.1f;
     float groundDisableTimer;
 
-    [SerializeField] PhysicsMaterial2D noFriction;
-    [SerializeField] PhysicsMaterial2D fullFriction;
-
     bool isGrounded;
 
     // -------------------------------------------------------------------------
@@ -74,7 +72,6 @@ public class PlayerMovement : MonoBehaviour
     // ÁGUA / ESTADO ESPECIAL
     // -------------------------------------------------------------------------
     [Header("Outros")]
-    [SerializeField] bool inWater;
     [SerializeField] float waitStartTime = 0.5f;
     float waitStartTimer;
 
@@ -86,7 +83,9 @@ public class PlayerMovement : MonoBehaviour
     float xInput;
     int dir = 1; // 1 = direita, -1 = esquerda
 
-    // =========================================================================
+    #endregion
+
+    
     void Awake()
     {
         rb  = GetComponent<Rigidbody2D>();
@@ -96,7 +95,7 @@ public class PlayerMovement : MonoBehaviour
         waitStartTimer = waitStartTime;
     }
 
-    // =========================================================================
+    
     void Update()
     {
         CheckGround();
@@ -113,9 +112,6 @@ public class PlayerMovement : MonoBehaviour
         groundDisableTimer -= Time.deltaTime;
 
         if (waitStartTimer <= 0f) moving = true;
-
-        // Atrito estático aplicado apenas se não houver comando e estiver parado no chão
-        rb.sharedMaterial = (xInput == 0 && isGrounded && Mathf.Abs(rb.velocity.x) < 0.05f) ? fullFriction : noFriction;
 
         // Gravidade com base no estado do pulo
         if (isGrounded)
@@ -161,21 +157,24 @@ public class PlayerMovement : MonoBehaviour
                 spr.transform.localScale = new Vector3(-1f, spr.transform.localScale.y, 1f);
             }
         }
-        else
+        else //Aqui é paara caso ele tivese mirando com o mouse para o jogador olhar na direçã oda mira
         {
+            if (weaponController.isMouseAim())
+            {
             Vector3 mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             mouseWorldPosition.z = 0f;
 
             Vector2 mdirection = mouseWorldPosition - transform.position;
             dir = (mdirection.x < 0) ? -1 : 1;
             spr.transform.localScale = new Vector3(dir, spr.transform.localScale.y, 1f);
+            }
         }
 
         if (Input.GetButtonDown("Jump"))
             jumpBufferTimer = jumpBufferTime;
     }
 
-    // =========================================================================
+    
     void FixedUpdate()
     {
         if (!moving) return;
@@ -196,9 +195,9 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // =========================================================================
+    #region Funcoes Diversas
     // MOVIMENTO HORIZONTAL MODIFICADO COM DETECÇÃO DE DERRAPAGEM
-    // =========================================================================
+    
     void Move()
     {
         if (moveBlockTimer > 0) return;
@@ -236,7 +235,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // =========================================================================
+    
     void Jump()
     {
         groundDisableTimer = groundDisableTime;
@@ -245,7 +244,7 @@ public class PlayerMovement : MonoBehaviour
         rb.gravityScale = 10f;
 
         // --- Wall Jump ---
-        if (onWall && !isGrounded && !inWater)
+        if (onWall && !isGrounded)
         {
             rb.velocity = new Vector2(rb.velocity.x, 0f);
 
@@ -265,7 +264,7 @@ public class PlayerMovement : MonoBehaviour
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
     }
 
-    // =========================================================================
+    
     void CheckGround()
     {
         if (groundDisableTimer > 0)
@@ -296,7 +295,7 @@ public class PlayerMovement : MonoBehaviour
         onWall = hit;
     }
 
-    // =========================================================================
+    
     public void AplicarEmpurraoRecuo(Vector2 forçaEmpurrao, float tempoBloqueioMovimento)
     {
         moveBlockTimer = tempoBloqueioMovimento;
@@ -307,7 +306,7 @@ public class PlayerMovement : MonoBehaviour
         rb.AddForce(forçaEmpurrao, ForceMode2D.Impulse);
     }
 
-    // =========================================================================
+    
     void OnDrawGizmos()
     {
         if (groundCheck != null)
@@ -324,4 +323,5 @@ public class PlayerMovement : MonoBehaviour
     {
         return (spr.transform.localScale.x == -1);
     }
+    #endregion
 }

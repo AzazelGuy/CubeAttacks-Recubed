@@ -1,13 +1,15 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
+using UnityEngine.UI;
 using UnityEngine;
 
 public class UIController : MonoBehaviour
 {
     public static UIController Instance;
     
-    public TextMeshProUGUI DebugBullets;
+    [SerializeField] private PlayerData playerData;
+    [SerializeField] private TextMeshProUGUI DebugBullets;
+    [SerializeField] private TextMeshProUGUI lifeAmnt;
+    [SerializeField] private Image HealthBarFill;
 
     private string weaponName;
     private int bulletsMax;
@@ -27,7 +29,9 @@ public class UIController : MonoBehaviour
     private void Update()
     {
 
-        DebugBullets.text = ($"Arma: {weaponName}\n AMMO:{bulletscurr}/{bulletsMax}");
+        DebugBullets.text = $"Arma: {weaponName}\n {bulletscurr}/{bulletsMax}";
+        HealthBarFill.fillAmount = (playerData.playerHealthCurrent/playerData.playerHealthMax);
+        lifeAmnt.text = (Mathf.Ceil(playerData.playerHealthCurrent)).ToString();
     }
 
     public void getWeaponInfo(string name, int bulletMax, int bulletcurr)

@@ -16,7 +16,7 @@ public class DamagePopUp : MonoBehaviour
         textMesh = GetComponent<TextMeshPro>();
     }
 
-    // Função para configurar o valor do dano
+    // Funï¿½ï¿½o para configurar o valor do dano
     public void Setup(float damageAmount)
     {
         textMesh.SetText(damageAmount.ToString());
@@ -29,13 +29,12 @@ public class DamagePopUp : MonoBehaviour
         textMesh.fontSize = 14f;
         textMesh.colorGradient = new VertexGradient(top, top, bottom, bottom);
     }
-
     private void Update()
     {
         // Faz o texto subir
         transform.position += new Vector3(0, moveYSpeed, 0) * Time.deltaTime;
 
-        // Controla o tempo para começar a sumir
+        // Controla o tempo para comeï¿½ar a sumir
         disappearTimer -= Time.deltaTime;
         if (disappearTimer < 0)
         {
@@ -43,7 +42,7 @@ public class DamagePopUp : MonoBehaviour
             textColor.a -= disappearSpeed * Time.deltaTime;
             textMesh.color = textColor;
 
-            // Destrói o objeto quando estiver totalmente invisível
+            // Destrï¿½i o objeto quando estiver totalmente invisï¿½vel
             if (textColor.a <= 0)
             {
                 Destroy(gameObject);

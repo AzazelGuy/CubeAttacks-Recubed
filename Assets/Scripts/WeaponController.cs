@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class WeaponController : MonoBehaviour
 {
-    #region Inicialização de Variaveis
+    #region Inicializaï¿½ï¿½o de Variaveis
     private float xDir, yDir;
 
     [Header("Gun Configurations")]
@@ -17,7 +17,7 @@ public class WeaponController : MonoBehaviour
     [SerializeField] private float rotateSpeed;
     [SerializeField] private PlayerMovement playerMovement;
 
-    // --- VARIÁVEIS DE ALERTA/ISQUEIRO DA ARMA ---
+    // --- VARIï¿½VEIS DE ALERTA/ISQUEIRO DA ARMA ---
     [HideInInspector] public bool alert = false;
     private float alertTimer;
     [SerializeField] private float alertTime = 5f; // Ajustado para 5 segundos conforme pediu
@@ -54,7 +54,7 @@ public class WeaponController : MonoBehaviour
             bulletAmmount[i] = Arsenal[i].BulletsMax;
         }
 
-        // Começa com a arma guardada
+        // Comeï¿½a com a arma guardada
         ResetarAlerta(false);
         UpdateWeaponAppearance();
     }
@@ -68,9 +68,9 @@ public class WeaponController : MonoBehaviour
         GunRotation(xDir, yDir);
         handleFire();
         handleSwap();
-        HandleAlertTimer(); // Lógica para contar o tempo do coldre
+        HandleAlertTimer(); // Lï¿½gica para contar o tempo do coldre
 
-        // Evita erro se o arsenal começar vazio por algum motivo
+        // Evita erro se o arsenal comeï¿½ar vazio por algum motivo
         if (Arsenal.Count > 0)
         {
             UIController.Instance.getWeaponInfo(Arsenal[currentWeapon].WeaponName, Arsenal[currentWeapon].BulletsMax, bulletAmmount[currentWeapon]);
@@ -95,7 +95,11 @@ public class WeaponController : MonoBehaviour
         }
     }
 
-    // Função auxiliar para ativar/desativar a arma visualmente
+    public bool isMouseAim()
+    {
+        return currAim == FireMode.mouseAim;
+    }
+    // Funï¿½ï¿½o auxiliar para ativar/desativar a arma visualmente
     private void ResetarAlerta(bool estaAtivo)
     {
         alert = estaAtivo;
@@ -103,11 +107,11 @@ public class WeaponController : MonoBehaviour
 
         if (estaAtivo)
         {
-            alertTimer = alertTime; // Reseta o cronômetro para 5 segundos
+            alertTimer = alertTime; // Reseta o cronï¿½metro para 5 segundos
         }
     }
 
-    // Lógica para rotacionar/mirar a arma em 8 direções
+    // Lï¿½gica para rotacionar/mirar a arma em 8 direï¿½ï¿½es
     private void GunRotation(float dirX, float dirY)
     {
         switch (currAim)
@@ -193,7 +197,7 @@ public class WeaponController : MonoBehaviour
             ResetarAlerta(true);
         }
 
-        // Só atira se: Apertou o botão E o cooldown passou E tem munição
+        // Sï¿½ atira se: Apertou o botï¿½o E o cooldown passou E tem muniï¿½ï¿½o
         if (querAtirar && Time.time >= nextFireTime && bulletAmmount[currentWeapon] > 0)
         {
             nextFireTime = Time.time + armaAtual.coolDownTime; // Aplica o Cooldown
@@ -209,15 +213,15 @@ public class WeaponController : MonoBehaviour
         // --- SISTEMA DE MOVIMENTO POR RECUO ---
         if (playerMovement != null && arma.recoilStrenght > 0)
         {
-            // canoDaArma.right é para onde o tiro vai. Negativo (-) joga o jogador para trás.
+            // canoDaArma.right ï¿½ para onde o tiro vai. Negativo (-) joga o jogador para trï¿½s.
             Vector2 direcaoEmpurrao = -canoDaArma.right;
 
-            // Se a força do Scriptable Object for baseada no ângulo visual (ex: 5, 10, 15), 
-            // multiplicamos por um fator menor (ex: 0.3f) para não isolar o quadrado da tela.
+            // Se a forï¿½a do Scriptable Object for baseada no ï¿½ngulo visual (ex: 5, 10, 15), 
+            // multiplicamos por um fator menor (ex: 0.3f) para nï¿½o isolar o quadrado da tela.
             float intensidadeForca = arma.recoilStrenght * 0.3f;
             Vector2 vetorForcaFinal = direcaoEmpurrao * intensidadeForca;
 
-            // Tempo em segundos que o jogador perde o controle do teclado para o recuo agir (0.15s é ótimo)
+            // Tempo em segundos que o jogador perde o controle do teclado para o recuo agir (0.15s ï¿½ ï¿½timo)
             float tempoBloqueioTeclado = 0.2f;
 
             playerMovement.AplicarEmpurraoRecuo(vetorForcaFinal, tempoBloqueioTeclado);
@@ -350,6 +354,6 @@ public class WeaponController : MonoBehaviour
             bulletAmmount[i] = Arsenal[i].BulletsMax;
         }
 
-        Debug.Log("Munição recarregada!");
+        Debug.Log("Muniï¿½ï¿½o recarregada!");
     }
 }
