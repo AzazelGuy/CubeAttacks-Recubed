@@ -19,7 +19,7 @@ public class DamagePopUp : MonoBehaviour
     // Fun��o para configurar o valor do dano
     public void Setup(float damageAmount)
     {
-        textMesh.SetText(damageAmount.ToString());
+        textMesh.SetText($"{damageAmount:.00}");
         textColor = textMesh.color;
     }
     public void ONCRIT()

@@ -1,42 +1,22 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "NewEnemyData", menuName = "Entities/Enemies/Enemy Data")]
+[CreateAssetMenu(fileName = "NewEnemy", menuName = "Entities/Enemies/Enemy ")]
 public class EnemyData : ScriptableObject
 {
-    [Header("Atributos Base")]
-    public string nomeInimigo;
-    [Range(100f,9999f)]public float hpMaximo;
-    public float defesa;
-    public float velocidade;
-    public enum Tier
-    {
-        Alfa,
-        Beta,
-        Gamma,
-        Delta
-    };
-
-    public bool isImortal = false;
-
+    public string enemyName;
+    [Range(100f,9999f)]public float maxHp;
+    public float defense;
+    public float speed;
+    public enum Tier{ Alfa, Beta, Gamma, Delta};
+    public enum TypeOfEnemy{ LongRange, Melee, Followers, Especial};
     public Tier tier;
-    public enum Type
-    {
-        LongRange,
-        Melee,
-        Followers,
-        Especial
-    };
-
-    public Type type;
-
+    public TypeOfEnemy type;
+    public bool isImortal = false;
     public WeaponData weapon;
+    public float damage;
+    [Range(0f,100f)]public float critChance;
+    [Range(0.1f,1f)]public float variationPercentage = 0.2f; 
+    [Tooltip("Utilizado para Waves")]
+    public GameObject enemyPrefab;
 
-    [Header("Combate")]
-    public float danoBase;
-    public float chanceCritico;
-
-    [Header("Visual")]
-    public GameObject prefabInimigo;
 }

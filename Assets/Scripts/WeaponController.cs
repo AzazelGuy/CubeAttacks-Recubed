@@ -290,7 +290,11 @@ public class WeaponController : MonoBehaviour
         if (hit.collider != null)
         {
             pontoFinal = hit.point;
-            hit.collider.GetComponent<EnemyBase>()?.onHit(dano);
+            EnemyBase inimigo = hit.collider.GetComponentInParent<EnemyBase>();
+                if (inimigo != null)
+                {
+                    inimigo.OnHit(dano);
+                }
         }
 
         if (rastroPrefab != null)

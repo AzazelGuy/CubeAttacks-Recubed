@@ -69,7 +69,7 @@ public class PlayerMovement : MonoBehaviour
     bool onWall;
 
     // -------------------------------------------------------------------------
-    // ÁGUA / ESTADO ESPECIAL
+    // ÁESTADO ESPECIAL
     // -------------------------------------------------------------------------
     [Header("Outros")]
     [SerializeField] float waitStartTime = 0.5f;

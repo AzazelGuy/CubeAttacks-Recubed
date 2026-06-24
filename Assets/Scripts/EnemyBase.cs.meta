@@ -3,8 +3,13 @@ guid: 92c8d3038335d1443925deeb187411bf
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
-  executionOrder: 0
+  defaultReferences:
+  - rb: {instanceID: 0}
+  - col: {instanceID: 0}
+  - spr: {instanceID: 0}
+  - enemyData: {instanceID: 0}
+  - popUpDamage: {fileID: 587718273397493148, guid: d4c3c89e52dc9de47bc687a0d437012a, type: 3}
+  executionOrder: -100
   icon: {instanceID: 0}
   userData: 
   assetBundleName: 
