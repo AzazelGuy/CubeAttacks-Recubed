@@ -10,6 +10,7 @@ public class UIController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI DebugBullets;
     [SerializeField] private TextMeshProUGUI lifeAmnt;
     [SerializeField] private Image HealthBarFill;
+    [SerializeField] private Image[] hurtImage;
 
     private string weaponName;
     private int bulletsMax;
@@ -32,6 +33,12 @@ public class UIController : MonoBehaviour
         DebugBullets.text = $"Arma: {weaponName}\n {bulletscurr}/{bulletsMax}";
         HealthBarFill.fillAmount = (playerData.playerHealthCurrent/playerData.playerHealthMax);
         lifeAmnt.text = (Mathf.Ceil(playerData.playerHealthCurrent)).ToString();
+        foreach (var item in hurtImage)
+        {
+            Color itemColor = item.color;
+            itemColor.a = (0.5f - (HealthBarFill.fillAmount * 0.5f));
+            item.color = itemColor;
+        }
     }
 
     public void getWeaponInfo(string name, int bulletMax, int bulletcurr)

@@ -6,6 +6,7 @@ TagManager:
   tags:
   - NoCollision
   - PickUp
+  - NodeMovement
   layers:
   - Default
   - TransparentFX
