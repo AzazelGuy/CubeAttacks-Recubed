@@ -124,7 +124,7 @@ public class WeaponController : MonoBehaviour
                     float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
 
                     float smoothAngle = Mathf.MoveTowardsAngle(
-                        gunPivot.eulerAngles.z, angle, rotateSpeed * Time.deltaTime);
+                    gunPivot.eulerAngles.z, angle, rotateSpeed * Time.deltaTime);
                     gunPivot.rotation = Quaternion.Euler(0, 0, smoothAngle);
 
                     Vector3 scale = gunPivot.localScale;
@@ -137,7 +137,7 @@ public class WeaponController : MonoBehaviour
 
                     float angle = Mathf.Atan2(0, dir) * Mathf.Rad2Deg;
                     float smoothAngle = Mathf.MoveTowardsAngle(
-                        gunPivot.eulerAngles.z, angle, rotateSpeed * Time.deltaTime);
+                    gunPivot.eulerAngles.z, angle, rotateSpeed * Time.deltaTime);
                     gunPivot.rotation = Quaternion.Euler(0, 0, smoothAngle);
 
                     Vector3 scale = gunPivot.localScale;

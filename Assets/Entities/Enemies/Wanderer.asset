@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Wanderer
   m_EditorClassIdentifier: 
   enemyName: Wanderer
-  maxHp: 100
+  maxHp: 10
   defense: 3
-  speed: 10
+  speed: 3
   tier: 0
   type: 1
   isImortal: 0

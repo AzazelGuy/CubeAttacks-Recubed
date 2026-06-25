@@ -157,18 +157,47 @@ public class PlayerMovement : MonoBehaviour
                 spr.transform.localScale = new Vector3(-1f, spr.transform.localScale.y, 1f);
             }
         }
-        else //Aqui é paara caso ele tivese mirando com o mouse para o jogador olhar na direçã oda mira
+        else 
+{
+    if (weaponController.isMouseAim())
+    {
+        // Mantém sua lógica do mouse perfeita
+        Vector3 mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        mouseWorldPosition.z = 0f;
+        Vector2 mdirection = mouseWorldPosition - transform.position;
+        dir = (mdirection.x < 0) ? -1 : 1;
+        spr.transform.localScale = new Vector3(dir, spr.transform.localScale.y, 1f);
+    }
+    else
+    {
+        // MIRA 8 DIRECIONAL ATIVA:
+        // Se houver input de movimento, o personagem vira normalmente
+        if (xInput > 0 && moveBlockTimer <= 0)
         {
-            if (weaponController.isMouseAim())
+            dir = 1;
+            spr.transform.localScale = new Vector3(1f, spr.transform.localScale.y, 1f);
+        }
+        else if (xInput < 0 && moveBlockTimer <= 0)
+        {
+            dir = -1;
+            spr.transform.localScale = new Vector3(-1f, spr.transform.localScale.y, 1f);
+        }
+        // SE ESTIVER PARADO ATIRANDO (xInput == 0):
+        // Vamos garantir que o corpo do jogador siga a direção real para onde o cano da arma está apontando!
+        else
+        {
+            // Puxa a direção horizontal que o cano da arma está apontando (canoDaArma.right.x)
+            // Se for positivo, olha pra direita (1). Se for negativo, olha pra esquerda (-1).
+            float direcaoDaArma = Mathf.Sign(weaponController.canoDaArma.right.x);
+            
+            if (weaponController.canoDaArma.right.x != 0) // Segurança contra divisões por zero
             {
-            Vector3 mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            mouseWorldPosition.z = 0f;
-
-            Vector2 mdirection = mouseWorldPosition - transform.position;
-            dir = (mdirection.x < 0) ? -1 : 1;
-            spr.transform.localScale = new Vector3(dir, spr.transform.localScale.y, 1f);
+                dir = (direcaoDaArma < 0) ? -1 : 1;
+                spr.transform.localScale = new Vector3(dir, spr.transform.localScale.y, 1f);
             }
         }
+    }
+}
 
         if (Input.GetButtonDown("Jump"))
             jumpBufferTimer = jumpBufferTime;

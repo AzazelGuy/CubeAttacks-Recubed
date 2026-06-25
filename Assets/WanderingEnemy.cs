@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 
 public class WanderingEnemy : EnemyBase
 {
@@ -37,11 +36,18 @@ public class WanderingEnemy : EnemyBase
 
     bool onWall;
 
-    private bool onChase = false;
+    /// <summary>
+    /// Perseguir jogador e outras coisas
+    /// </summary>
+
+    private enum State { Wander, Chase};
+    [SerializeField]private State currState = State.Wander;
     float xInput;
     int dir = 1; // 1 = direita, -1 = esquerda
 
     [SerializeField] private Transform target;
+    [SerializeField] private Transform spriteTransform;
+    
     protected override void Start()
     {
         base.Start();
@@ -61,12 +67,23 @@ public class WanderingEnemy : EnemyBase
         CheckGround();
         CheckWall();
 
-         if (onChase) xInput = Mathf.Sign(target.position.x - transform.position.x);
-         else xInput = dir;
+        if (currState == State.Chase && (Mathf.Abs(target.position.x - transform.position.x) > 0.03)) xInput = Mathf.Sign(target.position.x - transform.position.x);
+        else xInput = dir;
+        
+        // 1. Define para qual direção o sprite deve olhar de forma limpa
+        float lookDirection = (currState == State.Chase) ? xInput : dir;
 
+        // 2. Aplica o flip sem acumular multiplicação (usando o valor absoluto da escala atual)
+        if (lookDirection != 0)
+        {
+            float escalaXAbsoluta = Mathf.Abs(spriteTransform.localScale.x);
+            spriteTransform.localScale = new Vector3(escalaXAbsoluta * Mathf.Sign(lookDirection), spriteTransform.localScale.y, spriteTransform.localScale.z);
+        }
+        
         waitStartTimer -= Time.deltaTime;
-
-        if (onWall && !onChase) dir *= -1;
+        groundDisableTimer -= Time.deltaTime;
+        jumpBlockTimer -= Time.deltaTime;
+        if (onWall && currState != State.Chase) dir *= -1;
 
         if (currHp <= 0 && !isImortal) Destroy(gameObject);
     }
@@ -74,6 +91,28 @@ public class WanderingEnemy : EnemyBase
     protected void FixedUpdate()
     {
         Move();
+    }
+
+    protected void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision == null) return;
+
+        if (collision.CompareTag("EnemyJump"))
+        {
+            if (isGrounded && jumpBlockTimer <= 0) Jump();
+        }
+    }
+
+    void Jump()
+    {
+        groundDisableTimer = groundDisableTime;
+        jumpBlockTimer = jumpBlockTime;
+
+        rb.gravityScale = 10f;
+
+        // --- Pulo Normal ---
+        rb.velocity = new Vector2(rb.velocity.x, 0f);
+        rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
     }
 
     void Move()
@@ -141,6 +180,7 @@ public class WanderingEnemy : EnemyBase
 
         onWall = hit;
     }
+
 
     void OnDrawGizmos()
     {

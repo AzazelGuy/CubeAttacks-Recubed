@@ -4,7 +4,7 @@ using UnityEngine;
 public class EnemyData : ScriptableObject
 {
     public string enemyName;
-    [Range(100f,9999f)]public float maxHp;
+    [Range(10f,9999f)]public float maxHp;
     public float defense;
     public float speed;
     public enum Tier{ Alfa, Beta, Gamma, Delta};
