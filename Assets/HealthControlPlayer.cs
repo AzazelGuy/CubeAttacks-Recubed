@@ -16,7 +16,7 @@ public class HealthControlPlayer : MonoBehaviour
 
         if (timerUntilRegen > 0) return;
 
-        playerData.playerHealthCurrent = Mathf.Lerp(playerData.playerHealthCurrent, playerData.playerHealthMax, 1 + regenMult);
+        playerData.playerHealthCurrent = Mathf.Lerp(playerData.playerHealthCurrent, playerData.playerHealthMax, regenMult);
     }
 
     public void ResetTimer()

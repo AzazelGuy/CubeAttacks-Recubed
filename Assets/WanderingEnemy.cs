@@ -48,6 +48,7 @@ public class WanderingEnemy : EnemyBase
         speed *= Random.Range(1f - variationPercentage, 1f + variationPercentage);
         damage *= Random.Range(1f - variationPercentage, 1f + variationPercentage);
         
+        moveSpeed = speed;
         if (!isImortal){
             // Randomizes extra amount of health (in %) and applies it
             maxHp *= Random.Range(1f - variationPercentage, 1f + variationPercentage);

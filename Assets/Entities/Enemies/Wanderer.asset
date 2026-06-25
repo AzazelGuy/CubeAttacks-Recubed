@@ -23,4 +23,4 @@ MonoBehaviour:
   damage: 5
   critChance: 0
   variationPercentage: 0.1
-  enemyPrefab: {fileID: 0}
+  enemyPrefab: {fileID: 5748282952624241811, guid: e75c28a760091f4469e1a0910f0db584, type: 3}
