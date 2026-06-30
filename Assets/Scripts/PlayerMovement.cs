@@ -335,6 +335,11 @@ public class PlayerMovement : MonoBehaviour
         rb.AddForce(forçaEmpurrao, ForceMode2D.Impulse);
     }
 
+    public void AplicarEmpurraoRecuo(Vector2 forçaEmpurrao)
+    {
+        rb.AddForce(forçaEmpurrao, ForceMode2D.Impulse);
+    }
+    
     
     void OnDrawGizmos()
     {

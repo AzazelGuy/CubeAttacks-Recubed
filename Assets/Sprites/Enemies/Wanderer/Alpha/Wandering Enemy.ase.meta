@@ -2,7 +2,27 @@ fileFormatVersion: 2
 guid: b424d655897357544a865a1bb2cbd8ef
 ScriptedImporter:
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:AnimationClip
+      assembly: UnityEngine.AnimationModule
+      name: Attack
+    second: {fileID: 7400000, guid: b020014a0a8d25d4ab2e51a969468c07, type: 2}
+  - first:
+      type: UnityEngine:AnimationClip
+      assembly: UnityEngine.AnimationModule
+      name: Chase
+    second: {fileID: 7400000, guid: 5bb360d59f4340b499fb49f616f7cea1, type: 2}
+  - first:
+      type: UnityEngine:AnimationClip
+      assembly: UnityEngine.AnimationModule
+      name: Idle
+    second: {fileID: 7400000, guid: 36c68e35466b7864eb436fdc9703825f, type: 2}
+  - first:
+      type: UnityEngine:AnimationClip
+      assembly: UnityEngine.AnimationModule
+      name: Wandering
+    second: {fileID: 7400000, guid: d3d4d4668153f0645b76b24a329cfd4d, type: 2}
   serializedVersion: 2
   userData: 
   assetBundleName: 
@@ -95,7 +115,7 @@ ScriptedImporter:
     addSortingGroup: 1
     addShadowCasters: 0
   importFileNodeState: 1
-  platformSettingsDirtyTick: 639184190711767229
+  platformSettingsDirtyTick: 639184282307028129
   textureAssetName: 
   singleSpriteImportData:
   - name: 
@@ -121,14 +141,14 @@ ScriptedImporter:
   animatedSpriteImportData:
   - name: Frame_0
     originalName: 
-    pivot: {x: 0.47058824, y: 0}
+    pivot: {x: 0.5217391, y: 0}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
       serializedVersion: 2
-      x: 4
-      y: 145
-      width: 51
+      x: 64
+      y: 73
+      width: 46
       height: 63
     spriteID: e8e8d26811326ff45bde6a4ef26b53cb
     spriteBone: []
@@ -138,8 +158,28 @@ ScriptedImporter:
     indices: 
     edges: []
     tessellationDetail: 0
-    uvTransform: {x: 4, y: 145}
+    uvTransform: {x: 64, y: 73}
   - name: Frame_1
+    originalName: 
+    pivot: {x: 0.47058824, y: 0}
+    alignment: 9
+    border: {x: 0, y: 0, z: 0, w: 0}
+    rect:
+      serializedVersion: 2
+      x: 4
+      y: 145
+      width: 51
+      height: 63
+    spriteID: d012b1e789456b74d9e404576f9367fb
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 4, y: 145}
+  - name: Frame_2
     originalName: 
     pivot: {x: 0.5576923, y: 0}
     alignment: 9
@@ -150,7 +190,7 @@ ScriptedImporter:
       y: 73
       width: 52
       height: 64
-    spriteID: d012b1e789456b74d9e404576f9367fb
+    spriteID: 01fee2c7f61468d40b0c95cf527d5282
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -159,7 +199,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 4, y: 73}
-  - name: Frame_2
+  - name: Frame_3
     originalName: 
     pivot: {x: 0.42857146, y: 0}
     alignment: 9
@@ -170,7 +210,7 @@ ScriptedImporter:
       y: 4
       width: 84
       height: 61
-    spriteID: 01fee2c7f61468d40b0c95cf527d5282
+    spriteID: cf817d71279597c4686aa5aa2237bc13
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -194,27 +234,36 @@ ScriptedImporter:
       cellRect:
         x: 24
         y: 0
-        width: 51
+        width: 46
         height: 63
       spriteId: e8e8d26811326ff45bde6a4ef26b53cb
     - name: Frame_1
       frameIndex: 1
       additiveSortOrder: 0
       cellRect:
+        x: 24
+        y: 0
+        width: 51
+        height: 63
+      spriteId: d012b1e789456b74d9e404576f9367fb
+    - name: Frame_2
+      frameIndex: 2
+      additiveSortOrder: 0
+      cellRect:
         x: 19
         y: 0
         width: 52
         height: 64
-      spriteId: d012b1e789456b74d9e404576f9367fb
-    - name: Frame_2
-      frameIndex: 2
+      spriteId: 01fee2c7f61468d40b0c95cf527d5282
+    - name: Frame_3
+      frameIndex: 3
       additiveSortOrder: 0
       cellRect:
         x: 12
         y: 0
         width: 84
         height: 61
-      spriteId: 01fee2c7f61468d40b0c95cf527d5282
+      spriteId: cf817d71279597c4686aa5aa2237bc13
     linkedCells: []
     parentIndex: -1
   platformSettings:

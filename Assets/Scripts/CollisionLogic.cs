@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class CollisionLogic : MonoBehaviour
@@ -9,6 +10,8 @@ public class CollisionLogic : MonoBehaviour
     [SerializeField] private WeaponController weaponController;
     [SerializeField] private float invenciTime = 0.2f;
     private float invenciTimer;
+
+    [SerializeField] private Vector2 Knockback = new Vector2();
 
     void Update()
     {
@@ -37,7 +40,18 @@ public class CollisionLogic : MonoBehaviour
                     invenciTimer = invenciTime;
                     playerData.playerHealthCurrent -= inimigo.AttackPlayer();
                     hpContrl.ResetTimer();
+                    PlayerMovement player = GetComponentInParent<PlayerMovement>();
+                    float dir = Mathf.Sign(transform.position.x - inimigo.transform.position.x);
+
+                    Vector2 forca = new Vector2(
+                    Knockback.x * dir,
+                    Knockback.y
+                    );
+
+                    player.AplicarEmpurraoRecuo(forca);
                 }
             }
     }
+
+    
 }

@@ -3,15 +3,18 @@ using UnityEngine;
 
 public class WanderingEnemy : EnemyBase
 {
-
-    // -------------------------------------------------------------------------
-    // MOVIMENTO HORIZONTAL (Com Aceleração e Derrapagem)
-    // -------------------------------------------------------------------------
+    #region Variable Declarations
+        #region Horizontal Movement
     [Header("Movement")]
     [SerializeField] float moveSpeed = 8f;
     [SerializeField] float acceleration = 0.12f;
     [SerializeField] float deceleration = 0.18f;
     [SerializeField] float skidDeceleration = 0.4f;
+    [SerializeField] private float postAttackPushForce = 2f;
+
+    [SerializeField] private float desacelerationDisableTime = 0.25f;
+    private float desacelerationDisableTimer = 0;
+    int dir = 1; // 1 = direita, -1 = esquerda
     private float movingTimer = 0;
     [SerializeField] private float movingTime = 10f;
     [Description("This is a suggestion of time, cause it varries by the enemy's % of variation")]
@@ -21,16 +24,16 @@ public class WanderingEnemy : EnemyBase
     private float chaseTimer = 0;
     [SerializeField] private float chaseTime = 10f;
     [Description("This is a suggestion of time, cause it varries by the enemy's % of variation")]
+        #endregion
 
-
-    // -------------------------------------------------------------------------
-    // PULO
-    // -------------------------------------------------------------------------
+        #region Jumping
     [Header("Jump")]
     [SerializeField] float jumpForce = 12f;
     [SerializeField] float jumpBlockTime = 0.08f;
     float jumpBlockTimer;
+        #endregion
 
+        #region Raycasting Configs
     [Header("Ground Check")]
     [SerializeField] Transform groundCheck;
     [SerializeField] float groundDistance = 0.2f;
@@ -49,23 +52,26 @@ public class WanderingEnemy : EnemyBase
     bool onWall;
 
     [SerializeField] Transform PlayerDetectionOrigin;
+        #endregion
 
-    /// <summary>
-    /// Perseguir jogador e outras coisas
-    /// </summary>
-
+        #region EnemyStates
     private enum State { Wander, Chase, Stay};
     [SerializeField]private State currState = State.Wander;
     float xInput;
-    int dir = 1; // 1 = direita, -1 = esquerda
 
     [SerializeField] private Transform target;
     [SerializeField] private Transform spriteTransform;
-    private bool playerIsInRange;
+
+    [SerializeField] private Animator animator;
+    private float attackCooldownTimer;
+        #endregion
     
+    #endregion
+
     protected override void Start()
     {
         base.Start();
+        if (animator == null) animator = GetComponentInChildren<Animator>();
         speed *= Random.Range(1f - variationPercentage, 1f + variationPercentage);
         damage *= Random.Range(1f - variationPercentage, 1f + variationPercentage);
         
@@ -90,9 +96,62 @@ public class WanderingEnemy : EnemyBase
         CheckWall();
         DetectPlayer();
 
-        if (currState == State.Chase && (target != null) && (Mathf.Abs(target.position.x - transform.position.x) > 0.03)) 
+        DirectionBehavior();
+        StateUpdater();
+        SpriteFlip();
+        
+        waitStartTimer -= Time.deltaTime;
+        groundDisableTimer -= Time.deltaTime;
+        jumpBlockTimer -= Time.deltaTime;
+        desacelerationDisableTimer -= Time.deltaTime;
+
+        if (onWall && currState != State.Chase) dir *= -1;
+
+        if (currHp <= 0 && !isImortal) Destroy(gameObject);
+    }
+    
+    protected void FixedUpdate()
+    {
+        Move();
+    }
+
+    protected void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision == null) return;
+
+        if (collision.CompareTag("EnemyJump"))
         {
-            xInput = Mathf.Sign(target.position.x - transform.position.x);
+            if (isGrounded && jumpBlockTimer <= 0) Jump();
+        }
+    }
+
+    #region Movement Logic
+
+    void DirectionBehavior()
+    {
+        if (currState == State.Chase && target != null)
+        {
+            float distanceToTarget = Mathf.Abs(target.position.x - transform.position.x);
+
+            if (distanceToTarget > attackDistance)
+            {
+                xInput = Mathf.Sign(target.position.x - transform.position.x);
+                attackCooldownTimer = 0f;
+            }
+            else
+            {
+                xInput = 0f;
+                attackCooldownTimer += Time.deltaTime;
+
+                if (attackCooldownTimer >= attackSpeed)
+                {
+                    TriggerAttackAnimation();
+                    attackCooldownTimer = 0f;
+                    float direction = Mathf.Sign(target.position.x - transform.position.x);
+                    desacelerationDisableTimer = desacelerationDisableTime;
+                    rb.AddForce(Vector2.right * direction * postAttackPushForce, ForceMode2D.Impulse);
+                }
+            }
         }
         else if (currState == State.Stay)
         {
@@ -102,17 +161,10 @@ public class WanderingEnemy : EnemyBase
         {
             xInput = dir * 0.4f; // Wander usa a direção padrão
         }
-        
-        // 1. Define para qual direção o sprite deve olhar de forma limpa
-        float lookDirection = (currState == State.Chase) ? xInput : dir;
+    }
 
-        // 2. Aplica o flip sem acumular multiplicação (usando o valor absoluto da escala atual)
-        if (lookDirection != 0)
-        {
-            float escalaXAbsoluta = Mathf.Abs(spriteTransform.localScale.x);
-            spriteTransform.localScale = new Vector3(escalaXAbsoluta * Mathf.Sign(lookDirection), spriteTransform.localScale.y, spriteTransform.localScale.z);
-        }
-        
+    void StateUpdater()
+    {
         switch (currState)
         {
             case State.Wander:    
@@ -133,32 +185,20 @@ public class WanderingEnemy : EnemyBase
                     }
             break;
         }
-
-        waitStartTimer -= Time.deltaTime;
-        groundDisableTimer -= Time.deltaTime;
-        jumpBlockTimer -= Time.deltaTime;
-
-        if (onWall && currState != State.Chase) dir *= -1;
-
-        if (currHp <= 0 && !isImortal) Destroy(gameObject);
     }
-
     
-    protected void FixedUpdate()
+    void SpriteFlip()
     {
-        Move();
-    }
+        float lookDirection = (currState == State.Chase && target != null)
+            ? Mathf.Sign(target.position.x - transform.position.x)
+            : dir;
 
-    protected void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision == null) return;
-
-        if (collision.CompareTag("EnemyJump"))
+        if (lookDirection != 0)
         {
-            if (isGrounded && jumpBlockTimer <= 0) Jump();
+            float escalaXAbsoluta = Mathf.Abs(spriteTransform.localScale.x);
+            spriteTransform.localScale = new Vector3(escalaXAbsoluta * Mathf.Sign(lookDirection), spriteTransform.localScale.y, spriteTransform.localScale.z);
         }
     }
-
     void Jump()
     {
         groundDisableTimer = groundDisableTime;
@@ -172,8 +212,8 @@ public class WanderingEnemy : EnemyBase
 
     void Move()
     {
-        if (waitStartTimer > 0) return;
-
+        if (waitStartTimer > 0 || desacelerationDisableTimer > 0) return;
+        
         float targetVelocity = xInput * moveSpeed;
         float speedDiff = targetVelocity - rb.velocity.x;
         float forceFactor;
@@ -208,15 +248,47 @@ public class WanderingEnemy : EnemyBase
     }
 
     void DetectPlayer()
-    {
-        RaycastHit2D hit = Physics2D.CircleCast(PlayerDetectionOrigin.position, (col.bounds.size.y * 0.9f), Vector2.right * dir, detectionDistance, obstacleLayers); //Adiciona a layer do player como obstaclo
+{
+    Collider2D player = Physics2D.OverlapCircle(
+        PlayerDetectionOrigin.position,
+        detectionDistance,
+        playerLayers
+    );
 
-        if (hit.collider != null && hit.collider.CompareTag("PlayerHurtbox") && hit.collider.gameObject.layer == playerLayers)
-        {   
-            target = hit.transform.root;
-            ChangeState(State.Chase);
-        }
+    if (player == null)
+        return;
+
+    Vector2 direction = (player.transform.position - PlayerDetectionOrigin.position).normalized;
+    float distance = Vector2.Distance(PlayerDetectionOrigin.position, player.transform.position);
+
+    RaycastHit2D wall = Physics2D.Raycast(
+        PlayerDetectionOrigin.position,
+        direction,
+        distance,
+        obstacleLayers
+    );
+
+    if (wall.collider == null)
+    {
+        target = player.transform.root;
+        ChangeState(State.Chase);
     }
+}
+    
+    void FindPlayerAfterHit()
+{
+    Collider2D player = Physics2D.OverlapCircle(
+        PlayerDetectionOrigin.position,
+        detectionDistance * 2,
+        playerLayers
+    );
+
+    if (player == null)
+        return;
+
+        target = player.transform.root;
+        ChangeState(State.Chase);
+}
     void CheckGround()
     {
         if (groundDisableTimer > 0)
@@ -249,7 +321,11 @@ public class WanderingEnemy : EnemyBase
 
     private void ChangeState(State newState)
 {
+    if (currState == newState) return;
+
     currState = newState;
+    attackCooldownTimer = 0f;
+    UpdateAnimationState();
 
     // Reseta o timer específico do estado que está entrando
     switch (newState)
@@ -269,7 +345,43 @@ public class WanderingEnemy : EnemyBase
             break;
     }
 }
+    #endregion
+    
+    public override void OnHit(float recievedDamage)
+    {
+        base.OnHit(recievedDamage);
+        
+        FindPlayerAfterHit();
+    }
 
+    private void UpdateAnimationState()
+    {
+        if (animator == null) return;
+
+        animator.SetBool("isChasing", currState == State.Chase);
+
+        switch (currState)
+        {
+            case State.Wander:
+                animator.SetTrigger("Move");
+                break;
+            case State.Stay:
+                animator.SetTrigger("Rest");
+                break;
+            case State.Chase:
+                animator.SetTrigger("Move");
+                break;
+        }
+    }
+
+    public void TriggerAttackAnimation()
+    {
+        if (animator != null)
+        {
+            animator.SetTrigger("Attack");
+
+        }
+    }
     void OnDrawGizmos()
     {
         if (groundCheck != null)
@@ -280,6 +392,11 @@ public class WanderingEnemy : EnemyBase
             Gizmos.DrawRay(wallCheck.position, Vector2.right * wallDistance);
             Gizmos.DrawRay(wallCheck.position, Vector2.left  * wallDistance);
         }
+
+        Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, detectionDistance);
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, attackDistance);
     }
 }
