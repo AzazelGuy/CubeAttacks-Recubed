@@ -7,6 +7,8 @@ public class EnemyData : ScriptableObject
     [Range(10f,9999f)]public float maxHp;
     public float defense;
     public float speed;
+    public float detectionDistance;
+    public float attackDistance;
     public enum Tier{ Alfa, Beta, Gamma, Delta};
     public enum TypeOfEnemy{ LongRange, Melee, Followers, Especial};
     public Tier tier;

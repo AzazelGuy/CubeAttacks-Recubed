@@ -15,7 +15,9 @@ MonoBehaviour:
   enemyName: Wanderer
   maxHp: 10
   defense: 3
-  speed: 3
+  speed: 10
+  detectionDistance: 10
+  attackDistance: 2
   tier: 0
   type: 1
   isImortal: 0

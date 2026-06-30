@@ -21,6 +21,8 @@ public class EnemyBase : MonoBehaviour
     protected float currHp;
     protected float defense;
     protected float speed;
+    protected float detectionDistance;
+    protected float attackDistance;
     protected bool isImortal;
     protected EnemyData.Tier tier;
     protected EnemyData.TypeOfEnemy type;
@@ -63,6 +65,8 @@ public class EnemyBase : MonoBehaviour
         currHp = maxHp;
         defense = enemyData.defense;
         speed = enemyData.speed;
+        detectionDistance = enemyData.detectionDistance;
+        attackDistance = enemyData.attackDistance;
         isImortal = enemyData.isImortal;
         tier = enemyData.tier;
         type = enemyData.type;

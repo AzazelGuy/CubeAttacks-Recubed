@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using UnityEngine;
 
 public class WanderingEnemy : EnemyBase
@@ -11,6 +12,16 @@ public class WanderingEnemy : EnemyBase
     [SerializeField] float acceleration = 0.12f;
     [SerializeField] float deceleration = 0.18f;
     [SerializeField] float skidDeceleration = 0.4f;
+    private float movingTimer = 0;
+    [SerializeField] private float movingTime = 10f;
+    [Description("This is a suggestion of time, cause it varries by the enemy's % of variation")]
+    private float stillTimer = 0;
+    [SerializeField] private float stillTime = 10f;
+    [Description("This is a suggestion of time, cause it varries by the enemy's % of variation")]
+    private float chaseTimer = 0;
+    [SerializeField] private float chaseTime = 10f;
+    [Description("This is a suggestion of time, cause it varries by the enemy's % of variation")]
+
 
     // -------------------------------------------------------------------------
     // PULO
@@ -23,7 +34,8 @@ public class WanderingEnemy : EnemyBase
     [Header("Ground Check")]
     [SerializeField] Transform groundCheck;
     [SerializeField] float groundDistance = 0.2f;
-    [SerializeField] LayerMask groundLayer;
+    [SerializeField] LayerMask obstacleLayers;
+    [SerializeField] LayerMask playerLayers;
 
     [SerializeField] float groundDisableTime = 0.1f;
     float groundDisableTimer;
@@ -36,17 +48,20 @@ public class WanderingEnemy : EnemyBase
 
     bool onWall;
 
+    [SerializeField] Transform PlayerDetectionOrigin;
+
     /// <summary>
     /// Perseguir jogador e outras coisas
     /// </summary>
 
-    private enum State { Wander, Chase};
+    private enum State { Wander, Chase, Stay};
     [SerializeField]private State currState = State.Wander;
     float xInput;
     int dir = 1; // 1 = direita, -1 = esquerda
 
     [SerializeField] private Transform target;
     [SerializeField] private Transform spriteTransform;
+    private bool playerIsInRange;
     
     protected override void Start()
     {
@@ -55,20 +70,38 @@ public class WanderingEnemy : EnemyBase
         damage *= Random.Range(1f - variationPercentage, 1f + variationPercentage);
         
         moveSpeed = speed;
+        movingTime *= Random.Range(1f - variationPercentage, 1f + variationPercentage); 
+        movingTimer = movingTime;
+
+        target = null;
+
         if (!isImortal){
             // Randomizes extra amount of health (in %) and applies it
             maxHp *= Random.Range(1f - variationPercentage, 1f + variationPercentage);
             currHp = maxHp;
         }
+
     }
 
     protected void Update()
     {
+        
         CheckGround();
         CheckWall();
+        DetectPlayer();
 
-        if (currState == State.Chase && (Mathf.Abs(target.position.x - transform.position.x) > 0.03)) xInput = Mathf.Sign(target.position.x - transform.position.x);
-        else xInput = dir;
+        if (currState == State.Chase && (target != null) && (Mathf.Abs(target.position.x - transform.position.x) > 0.03)) 
+        {
+            xInput = Mathf.Sign(target.position.x - transform.position.x);
+        }
+        else if (currState == State.Stay)
+        {
+            xInput = 0; // Garante que fique parado no frame atual
+        }
+        else 
+        {
+            xInput = dir * 0.4f; // Wander usa a direção padrão
+        }
         
         // 1. Define para qual direção o sprite deve olhar de forma limpa
         float lookDirection = (currState == State.Chase) ? xInput : dir;
@@ -80,14 +113,37 @@ public class WanderingEnemy : EnemyBase
             spriteTransform.localScale = new Vector3(escalaXAbsoluta * Mathf.Sign(lookDirection), spriteTransform.localScale.y, spriteTransform.localScale.z);
         }
         
+        switch (currState)
+        {
+            case State.Wander:    
+                movingTimer -= Time.deltaTime;
+                if (movingTimer <= 0) ChangeState(State.Stay); // Cansei de andar, vou parar
+            break;
+
+            case State.Stay:
+                stillTimer -= Time.deltaTime;
+                if (stillTimer <= 0) ChangeState(State.Wander); // Cansei de ficar parado, vou andar
+            break;
+
+            case State.Chase:
+                chaseTimer -= Time.deltaTime;
+                if (chaseTimer <= 0) {
+                    ChangeState(State.Wander); // Perdi o player de vista, vou voltar a passea
+                    target = null;
+                    }
+            break;
+        }
+
         waitStartTimer -= Time.deltaTime;
         groundDisableTimer -= Time.deltaTime;
         jumpBlockTimer -= Time.deltaTime;
+
         if (onWall && currState != State.Chase) dir *= -1;
 
         if (currHp <= 0 && !isImortal) Destroy(gameObject);
     }
 
+    
     protected void FixedUpdate()
     {
         Move();
@@ -110,7 +166,6 @@ public class WanderingEnemy : EnemyBase
 
         rb.gravityScale = 10f;
 
-        // --- Pulo Normal ---
         rb.velocity = new Vector2(rb.velocity.x, 0f);
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
     }
@@ -123,7 +178,7 @@ public class WanderingEnemy : EnemyBase
         float speedDiff = targetVelocity - rb.velocity.x;
         float forceFactor;
 
-        if (xInput != 0)
+        if (xInput != 0 )
         {
             // DERRAPAGEM: Só acontece se estiver no CHÃO (isGrounded), mudando de direção e com velocidade
             if (isGrounded && Mathf.Sign(xInput) != Mathf.Sign(rb.velocity.x) && Mathf.Abs(rb.velocity.x) > 0.5f)
@@ -151,6 +206,17 @@ public class WanderingEnemy : EnemyBase
             );
         }
     }
+
+    void DetectPlayer()
+    {
+        RaycastHit2D hit = Physics2D.CircleCast(PlayerDetectionOrigin.position, (col.bounds.size.y * 0.9f), Vector2.right * dir, detectionDistance, obstacleLayers); //Adiciona a layer do player como obstaclo
+
+        if (hit.collider != null && hit.collider.CompareTag("PlayerHurtbox") && hit.collider.gameObject.layer == playerLayers)
+        {   
+            target = hit.transform.root;
+            ChangeState(State.Chase);
+        }
+    }
     void CheckGround()
     {
         if (groundDisableTimer > 0)
@@ -163,7 +229,7 @@ public class WanderingEnemy : EnemyBase
             groundCheck.position,
             Vector2.down,
             groundDistance,
-            groundLayer
+            obstacleLayers
         );
 
         isGrounded = hit;
@@ -175,12 +241,34 @@ public class WanderingEnemy : EnemyBase
             wallCheck.position,
             Vector2.right * dir,
             wallDistance,
-            groundLayer
+            obstacleLayers
         );
 
         onWall = hit;
     }
 
+    private void ChangeState(State newState)
+{
+    currState = newState;
+
+    // Reseta o timer específico do estado que está entrando
+    switch (newState)
+    {
+        case State.Wander:
+            movingTimer = movingTime; 
+            dir = Random.Range(0, 2) == 0 ? 1 : -1;
+            break;
+
+        case State.Stay:
+            stillTimer = stillTime;
+            xInput = 0;
+            break;
+
+        case State.Chase:
+            chaseTimer = chaseTime;
+            break;
+    }
+}
 
     void OnDrawGizmos()
     {
@@ -192,5 +280,6 @@ public class WanderingEnemy : EnemyBase
             Gizmos.DrawRay(wallCheck.position, Vector2.right * wallDistance);
             Gizmos.DrawRay(wallCheck.position, Vector2.left  * wallDistance);
         }
+        Gizmos.DrawWireSphere(transform.position, detectionDistance);
     }
 }
