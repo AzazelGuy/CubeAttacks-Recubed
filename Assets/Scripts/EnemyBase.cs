@@ -42,7 +42,7 @@ public class EnemyBase : MonoBehaviour
     [Header("Outros")]
     [SerializeField] protected float waitStartTime = 0.5f;
     protected float waitStartTimer;
-    private float checkTimer;
+    private float checkTimer = 0.2f;
 
     #endregion ESTADO ESPECIAL
 
@@ -142,7 +142,15 @@ public class EnemyBase : MonoBehaviour
 
     public virtual void OnHit(float recievedDamage)
     {
-
+        Vector3 offset = new Vector3(Random.Range(-2f, 2f), Random.Range(-2f, 2f));
+        var damagepopUp = Instantiate(popUpDamage);
+        if (isImortal)
+        {
+            damagepopUp.transform.position = transform.position + offset;
+            damagepopUp.GetComponent<DamagePopUp>().Imortal();
+        return;
+        }
+        
         float critPlayerChance = .2f;
         bool playerCrit = (Random.Range(0f, 1f) <= critPlayerChance);
 
@@ -154,11 +162,14 @@ public class EnemyBase : MonoBehaviour
         float damageFinal = recievedDamage * (255f / (255 + defense));
         if (!isImortal) currHp -= damageFinal;
         Debug.Log(currHp);
-        Vector3 offset = new Vector3(Random.Range(-2f, 2f), Random.Range(-2f, 2f)); ;
-        var damagepopUp = Instantiate(popUpDamage);
         damagepopUp.transform.position = transform.position + offset;
         damagepopUp.GetComponent<DamagePopUp>().Setup(damageFinal);
-        if (playerCrit) damagepopUp.GetComponent<DamagePopUp>().ONCRIT();
+        if (playerCrit) {
+            damagepopUp.GetComponent<DamagePopUp>().ONCRIT();
+            var criticalText = Instantiate(popUpDamage);
+            criticalText.GetComponent<DamagePopUp>().SetupCrit();
+            damagepopUp.transform.position = transform.position;
+            }
     }
 
     public virtual float AttackPlayer()

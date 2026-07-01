@@ -116,11 +116,11 @@ public class WanderingEnemy : EnemyBase
         Move();
     }
 
-    protected void OnTriggerEnter2D(Collider2D collision)
+    protected void OnTriggerStay2D(Collider2D collision)
     {
         if (collision == null) return;
 
-        if (collision.CompareTag("EnemyJump"))
+        if (collision.CompareTag("EnemyJump") && currState != State.Stay)
         {
             if (isGrounded && jumpBlockTimer <= 0) Jump();
         }
@@ -134,7 +134,9 @@ public class WanderingEnemy : EnemyBase
         {
             float distanceToTarget = Mathf.Abs(target.position.x - transform.position.x);
 
-            if (distanceToTarget > attackDistance)
+            
+
+            if (distanceToTarget > attackDistance && attackCooldownTimer <= 0f)
             {
                 xInput = Mathf.Sign(target.position.x - transform.position.x);
                 attackCooldownTimer = 0f;
@@ -143,8 +145,8 @@ public class WanderingEnemy : EnemyBase
             {
                 xInput = 0f;
                 attackCooldownTimer += Time.deltaTime;
-
-                if (attackCooldownTimer >= attackSpeed)
+                float heightDistancetoTarget = Mathf.Abs(target.position.y - transform.position.y);
+                if (attackCooldownTimer >= attackSpeed && heightDistancetoTarget <= 2f)
                 {
                     TriggerAttackAnimation();
                     attackCooldownTimer = 0f;
@@ -322,7 +324,7 @@ public class WanderingEnemy : EnemyBase
 
     private void ChangeState(State newState)
 {
-    if (currState == newState) return;
+    if (currState == newState || !isGrounded) return;
 
     currState = newState;
     attackCooldownTimer = 0f;
@@ -380,8 +382,12 @@ public class WanderingEnemy : EnemyBase
         if (animator != null)
         {
             animator.SetTrigger("Attack");
-
         }
+    }
+
+    public void StopAttack()
+    {
+        
     }
     void OnDrawGizmos()
     {

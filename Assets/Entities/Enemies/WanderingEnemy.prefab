@@ -144,7 +144,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2021004765783505042}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.05, z: 0}
+  m_LocalPosition: {x: 0, y: 0.912, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -336,6 +336,8 @@ MonoBehaviour:
   enemyData: {fileID: 11400000, guid: ff86498678ed11f44b6b1e6955d85115, type: 2}
   popUpDamage: {fileID: 587718273397493148, guid: d4c3c89e52dc9de47bc687a0d437012a, type: 3}
   waitStartTime: 0.5
+  activationDistance: 45
+  deactivationDistance: 50
   moveSpeed: 10
   acceleration: 50
   deceleration: 30
@@ -351,7 +353,7 @@ MonoBehaviour:
   groundDistance: 0.2
   obstacleLayers:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 2112
   playerLayers:
     serializedVersion: 2
     m_Bits: 128

@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a9116eef603c7ce4a95d5fa9c899eaae, type: 3}
+  m_Name: Dummy
+  m_EditorClassIdentifier: 
+  enemyName: Dummy
+  maxHp: 0
+  defense: 0
+  speed: 0
+  tier: 0
+  type: 1
+  isImortal: 1
+  weapon: {fileID: 0}
+  damage: 0
+  critChance: 0
+  variationPercentage: 0.2
+  enemyPrefab: {fileID: 5867875190023200311, guid: 90e74a51fe1defe478e2f7d1b57b3d59, type: 3}
