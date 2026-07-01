@@ -42,11 +42,19 @@ public class EnemyBase : MonoBehaviour
     [Header("Outros")]
     [SerializeField] protected float waitStartTime = 0.5f;
     protected float waitStartTimer;
+    private float checkTimer;
+
     #endregion ESTADO ESPECIAL
+
+    protected bool isActive;
+    [SerializeField] private float activationDistance = 45f;
+    [SerializeField] private float deactivationDistance = 50;
+
+    private Transform cam;
 
     #endregion
 
-    
+
     protected virtual void Start()
     {
         if (enemyData == null)
@@ -56,7 +64,7 @@ public class EnemyBase : MonoBehaviour
             return;
         }
 
-        if (rb == null) rb  = GetComponent<Rigidbody2D>();
+        if (rb == null) rb = GetComponent<Rigidbody2D>();
         if (col == null) col = GetComponent<Collider2D>();
         if (spr == null) spr = GetComponentInChildren<SpriteRenderer>();
 
@@ -76,13 +84,65 @@ public class EnemyBase : MonoBehaviour
         damage = enemyData.damage;
         critChance = enemyData.critChance;
         variationPercentage = enemyData.variationPercentage;
-
+        cam = Camera.main.transform;
         waitStartTimer = waitStartTime;
     }
-    
+
+    protected virtual void CheckActivation()
+    {
+        checkTimer -= Time.deltaTime;
+
+        if (checkTimer <= 0)
+        {
+            checkTimer = 0.2f;
+            ActivateInView();
+        }
+
+        if (!isActive)
+            return;
+
+    }
+
+    protected void ActivateInView()
+    {
+        float distance = Vector2.Distance(
+            transform.position,
+            cam.position
+        );
+
+        if (!isActive && distance <= activationDistance)
+        {
+            SetEnemyActive(true);
+        }
+        else if (isActive && distance >= deactivationDistance)
+        {
+            SetEnemyActive(false);
+        }
+    }
+
+    protected virtual void SetEnemyActive(bool active)
+    {
+        isActive = active;
+
+        rb.simulated = active;
+
+        if (col != null)
+            col.enabled = active;
+
+        if (spr != null)
+            spr.enabled = active;
+
+        // Animator
+        Animator anim = GetComponentInChildren<Animator>();
+        if (anim != null)
+            anim.enabled = active;
+
+        Debug.Log(active ? "Ativado" : "Desativado");
+    }
+
     public virtual void OnHit(float recievedDamage)
     {
-        
+
         float critPlayerChance = .2f;
         bool playerCrit = (Random.Range(0f, 1f) <= critPlayerChance);
 
@@ -91,10 +151,10 @@ public class EnemyBase : MonoBehaviour
             recievedDamage *= 2;
             Debug.Log("critico!");
         }
-        float damageFinal = recievedDamage * (255f/(255+defense));
+        float damageFinal = recievedDamage * (255f / (255 + defense));
         if (!isImortal) currHp -= damageFinal;
         Debug.Log(currHp);
-        Vector3 offset = new Vector3 (Random.Range(-2f,2f), Random.Range(-2f, 2f)); ;
+        Vector3 offset = new Vector3(Random.Range(-2f, 2f), Random.Range(-2f, 2f)); ;
         var damagepopUp = Instantiate(popUpDamage);
         damagepopUp.transform.position = transform.position + offset;
         damagepopUp.GetComponent<DamagePopUp>().Setup(damageFinal);

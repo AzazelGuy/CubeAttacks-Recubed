@@ -91,6 +91,7 @@ public class WanderingEnemy : EnemyBase
 
     protected void Update()
     {
+        CheckActivation();
         
         CheckGround();
         CheckWall();
