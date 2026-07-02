@@ -101,6 +101,21 @@ public class WanderingEnemy : EnemyBase
         StateUpdater();
         SpriteFlip();
         
+        if (isGrounded && groundDisableTimer <= 0)
+        {
+            rb.gravityScale = 10f;
+        }
+        else
+        {
+            if (rb.velocity.y > 5f)
+            {
+                rb.gravityScale = 10f;
+            }else
+            {
+                rb.gravityScale = 20f;
+            }
+        }
+
         waitStartTimer -= Time.deltaTime;
         groundDisableTimer -= Time.deltaTime;
         jumpBlockTimer -= Time.deltaTime;
@@ -198,8 +213,8 @@ public class WanderingEnemy : EnemyBase
 
         if (lookDirection != 0)
         {
-            float escalaXAbsoluta = Mathf.Abs(spriteTransform.localScale.x);
-            spriteTransform.localScale = new Vector3(escalaXAbsoluta * Mathf.Sign(lookDirection), spriteTransform.localScale.y, spriteTransform.localScale.z);
+            float absolueXScale = Mathf.Abs(spriteTransform.localScale.x);
+            spriteTransform.localScale = new Vector3(absolueXScale * Mathf.Sign(lookDirection), spriteTransform.localScale.y, spriteTransform.localScale.z);
         }
     }
     void Jump()

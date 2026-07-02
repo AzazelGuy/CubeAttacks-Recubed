@@ -13,12 +13,15 @@ MonoBehaviour:
   m_Name: Dummy
   m_EditorClassIdentifier: 
   enemyName: Dummy
-  maxHp: 0
+  maxHp: 9999
   defense: 0
   speed: 0
+  detectionDistance: 0
+  attackDistance: 0
+  attackSpeed: 0
   tier: 0
   type: 1
-  isImortal: 1
+  isImortal: 0
   weapon: {fileID: 0}
   damage: 0
   critChance: 0

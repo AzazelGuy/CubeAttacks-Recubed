@@ -168,7 +168,7 @@ public class EnemyBase : MonoBehaviour
             damagepopUp.GetComponent<DamagePopUp>().ONCRIT();
             var criticalText = Instantiate(popUpDamage);
             criticalText.GetComponent<DamagePopUp>().SetupCrit();
-            damagepopUp.transform.position = transform.position;
+            criticalText.transform.position = transform.position;
             }
     }
 
