@@ -124,7 +124,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7b861b8983415f4c9c7355ddfe3e162, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  col: {fileID: 0}
-  spr: {fileID: 0}
+  rb: {fileID: 0}
+  col: {fileID: 5867875190023200309}
+  spr: {fileID: 5867875190023200308}
   enemyData: {fileID: 11400000, guid: 6e837a1ac733c7846804859a6a374ef2, type: 2}
+  popUpDamage: {fileID: 587718273397493148, guid: d4c3c89e52dc9de47bc687a0d437012a, type: 3}
   waitStartTime: 0.5
+  activationDistance: 45
+  deactivationDistance: 50

@@ -13,17 +13,21 @@ MonoBehaviour:
   m_Name: Wanderer
   m_EditorClassIdentifier: 
   enemyName: Wanderer
+  isImortal: 0
   maxHp: 10
   defense: 3
   speed: 10
   detectionDistance: 10
+  hasAttack: 1
   attackDistance: 3.5
   attackSpeed: 0.2
   tier: 0
   type: 1
-  isImortal: 0
+  hasDrops: 0
+  drops: []
+  usesWeapon: 0
   weapon: {fileID: 0}
-  damage: 5
+  damageAttack: 5
   critChance: 0
   variationPercentage: 0.1
   enemyPrefab: {fileID: 5748282952624241811, guid: e75c28a760091f4469e1a0910f0db584, type: 3}

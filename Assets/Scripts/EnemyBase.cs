@@ -1,21 +1,31 @@
 using UnityEngine;
 
+/// <summary>
+/// Base class for enemy behavior, stats, activation, and combat interactions.
+/// </summary>
 public class EnemyBase : MonoBehaviour
 {
-    #region Variaveis
     // -------------------------------------------------------------------------
-    // REFERÊNCIAS DE COMPONENTES
+    // COMPONENT REFERENCES
     // -------------------------------------------------------------------------
+    #region Component References
     [SerializeField] protected Rigidbody2D rb;
     [SerializeField] protected Collider2D col;
     [SerializeField] protected SpriteRenderer spr;
+    #endregion
 
-    /// <summary>
-    /// DADOS DOS INIMIGOS
-    /// </summary>
-    #region  DADOS DE INIMIGOS
+    // -------------------------------------------------------------------------
+    // ENEMY DATA
+    // -------------------------------------------------------------------------
+    #region Enemy Data
     [Header("Informações do Inimigo")]
     [SerializeField] protected EnemyData enemyData;
+
+    protected bool hasAttack;
+    protected bool hasDrops;
+    protected bool usesWeapon;
+
+    protected DropEntry[] drops;
     protected string enemyName;
     protected float maxHp;
     protected float currHp;
@@ -32,29 +42,29 @@ public class EnemyBase : MonoBehaviour
     protected float critChance;
     protected float variationPercentage;
     public GameObject popUpDamage;
-
-    #endregion DADOS DE INIMIGOS
+    public GameObject damageEffect;
+    #endregion
 
     // -------------------------------------------------------------------------
-    // ESTADO ESPECIAL
+    // STATE AND BEHAVIOR SETTINGS
     // -------------------------------------------------------------------------
-    #region ESTADO ESPECIAL
+    #region State and Behavior Settings
     [Header("Outros")]
     [SerializeField] protected float waitStartTime = 0.5f;
     protected float waitStartTimer;
     private float checkTimer = 0.2f;
 
-    #endregion ESTADO ESPECIAL
-
     protected bool isActive;
     [SerializeField] private float activationDistance = 45f;
-    [SerializeField] private float deactivationDistance = 50;
+    [SerializeField] private float deactivationDistance = 50f;
 
     private Transform cam;
-
     #endregion
 
-
+    // -------------------------------------------------------------------------
+    // UNITY LIFECYCLE
+    // -------------------------------------------------------------------------
+    #region Unity Lifecycle
     protected virtual void Start()
     {
         if (enemyData == null)
@@ -68,26 +78,61 @@ public class EnemyBase : MonoBehaviour
         if (col == null) col = GetComponent<Collider2D>();
         if (spr == null) spr = GetComponentInChildren<SpriteRenderer>();
 
-        // Setting up the enemy data
+        // Setup enemy stats from data asset.
         enemyName = enemyData.enemyName;
-        maxHp = enemyData.maxHp;
-        currHp = maxHp;
-        defense = enemyData.defense;
+        isImortal = enemyData.isImortal;
+
+        if (!isImortal)
+        {
+            maxHp = enemyData.maxHp;
+            currHp = maxHp;
+            defense = enemyData.defense;
+        }
+
         speed = enemyData.speed;
         detectionDistance = enemyData.detectionDistance;
-        attackDistance = enemyData.attackDistance;
-        attackSpeed = enemyData.attackSpeed;
-        isImortal = enemyData.isImortal;
+
+        hasAttack = enemyData.hasAttack;
+
+        if (hasAttack)
+        {
+            attackDistance = enemyData.attackDistance;
+            attackSpeed = enemyData.attackSpeed;
+        }
+
         tier = enemyData.tier;
         type = enemyData.type;
-        weapon = enemyData.weapon;
-        damage = enemyData.damage;
+
+        hasDrops = enemyData.hasDrops;
+
+        if (hasDrops)
+        {
+            drops = enemyData.drops;
+        }
+
+        usesWeapon = enemyData.usesWeapon;
+
+        if (usesWeapon)
+        {
+            weapon = enemyData.weapon;
+        }
+        else
+        {
+            damage = enemyData.damageAttack;
+        }
+
         critChance = enemyData.critChance;
         variationPercentage = enemyData.variationPercentage;
+
         cam = Camera.main.transform;
         waitStartTimer = waitStartTime;
     }
+    #endregion
 
+    // -------------------------------------------------------------------------
+    // ACTIVATION LOGIC
+    // -------------------------------------------------------------------------
+    #region Activation Logic
     protected virtual void CheckActivation()
     {
         checkTimer -= Time.deltaTime;
@@ -100,15 +145,11 @@ public class EnemyBase : MonoBehaviour
 
         if (!isActive)
             return;
-
     }
 
     protected void ActivateInView()
     {
-        float distance = Vector2.Distance(
-            transform.position,
-            cam.position
-        );
+        float distance = Vector2.Distance(transform.position, cam.position);
 
         if (!isActive && distance <= activationDistance)
         {
@@ -139,18 +180,25 @@ public class EnemyBase : MonoBehaviour
 
         Debug.Log(active ? "Ativado" : "Desativado");
     }
+    #endregion
 
+    // -------------------------------------------------------------------------
+    // COMBAT LOGIC
+    // -------------------------------------------------------------------------
+    #region Combat Logic
     public virtual void OnHit(float recievedDamage)
     {
+        if (damageEffect != null) {Instantiate(damageEffect);}
         Vector3 offset = new Vector3(Random.Range(-2f, 2f), Random.Range(-2f, 2f));
         var damagepopUp = Instantiate(popUpDamage);
+
         if (isImortal)
         {
             damagepopUp.transform.position = transform.position + offset;
             damagepopUp.GetComponent<DamagePopUp>().Imortal();
-        return;
+            return;
         }
-        
+
         float critPlayerChance = .2f;
         bool playerCrit = (Random.Range(0f, 1f) <= critPlayerChance);
 
@@ -159,21 +207,38 @@ public class EnemyBase : MonoBehaviour
             recievedDamage *= 2;
             Debug.Log("critico!");
         }
-        float damageFinal = recievedDamage * (255f / (255 + defense));
+
+        float damageFinal = recievedDamage;
+
+        if (!isImortal)
+        {
+            damageFinal *= (255f / (255 + defense));
+            currHp -= damageFinal;
+        }
+
         if (!isImortal) currHp -= damageFinal;
         Debug.Log(currHp);
+
         damagepopUp.transform.position = transform.position + offset;
         damagepopUp.GetComponent<DamagePopUp>().Setup(damageFinal);
-        if (playerCrit) {
+
+        if (playerCrit)
+        {
             damagepopUp.GetComponent<DamagePopUp>().ONCRIT();
             var criticalText = Instantiate(popUpDamage);
             criticalText.GetComponent<DamagePopUp>().SetupCrit();
             criticalText.transform.position = transform.position;
-            }
+        }
     }
 
     public virtual float AttackPlayer()
     {
+        if (usesWeapon && weapon != null)
+        {
+            return weapon.bulletDamage;
+        }
+
         return damage;
     }
+    #endregion
 }
