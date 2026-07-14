@@ -99,10 +99,10 @@ public class ReScoutAI : EnemyBase
     [SerializeField] private Vector2 speedVariationRange = new Vector2(0.85f, 1.15f);
 
     [Tooltip("Chance to stop and stay still after a wander segment ends.")]
-    [SerializeField] [Range(0f, 1f)] private float stopChance = 0.4f;
+    [SerializeField][Range(0f, 1f)] private float stopChance = 0.4f;
 
     [Tooltip("Chance to flip direction after staying still.")]
-    [SerializeField] [Range(0f, 1f)] private float flipChanceAfterStop = 0.5f;
+    [SerializeField][Range(0f, 1f)] private float flipChanceAfterStop = 0.5f;
 
     [Tooltip("Origin point used for player detection and line-of-sight checks.")]
     [SerializeField] Transform PlayerDetectionOrigin;
