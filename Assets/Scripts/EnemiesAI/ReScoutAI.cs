@@ -1,8 +1,7 @@
-using System.ComponentModel;
 using UnityEngine;
 
 /// <summary>
-/// Scout-style enemy AI with wandering, staying, attacking, and simple jumping behaviors.
+/// Scout-style enemy AI with wandering, cover-seeking, hiding, peeking, and shooting behavior.
 /// </summary>
 public class ReScoutAI : EnemyBase
 {
@@ -24,25 +23,21 @@ public class ReScoutAI : EnemyBase
     [Tooltip("Stronger braking force used when changing direction on the ground.")]
     [SerializeField] float skidDeceleration = 0.4f;
 
-    [Tooltip("Impulse applied after attacking to push the enemy away from the target.")]
-    [SerializeField] private float postAttackPushForce = 2f;
+    //[Tooltip("Impulse applied after attacking to push the enemy away from the target.")]
+    //[SerializeField] private float postAttackPushForce = 2f;
 
     [Tooltip("Time during which deceleration is disabled after an attack.")]
     [SerializeField] private float desacelerationDisableTime = 0.25f;
     private float desacelerationDisableTimer = 0f;
-    int dir = 1; // 1 = direita, -1 = esquerda
+    private int dir = 1; // 1 = right, -1 = left
     private float movingTimer = 0f;
 
     [Tooltip("Suggested duration for the wandering state before stopping.")]
     [SerializeField] private float movingTime = 10f;
-
-    [Description("This is a suggestion of time, cause it varries by the enemy's % of variation")]
     private float stillTimer = 0f;
 
     [Tooltip("Suggested duration for the staying state before wandering again.")]
     [SerializeField] private float stillTime = 10f;
-
-    [Description("This is a suggestion of time, cause it varries by the enemy's % of variation")]
     #endregion
 
     // -------------------------------------------------------------------------
@@ -144,7 +139,7 @@ public class ReScoutAI : EnemyBase
     private int shotsFired;
     private float peekTimer;
     private float peekShotTimer;
-    private float peekDurationTimer;
+    // private float peekDurationTimer; // Unused timer kept for future peek duration logic.
     #endregion
 
     // -------------------------------------------------------------------------
@@ -153,7 +148,7 @@ public class ReScoutAI : EnemyBase
     #region State and AI References
     private enum State { Wander, LookingForCover, Hidding, Shooting, Stay };
     [SerializeField] private State currState = State.Wander;
-    float xInput;
+    private float xInput;
 
     [Tooltip("Current detected target for attack behavior.")]
     [SerializeField] private Transform target;
@@ -207,21 +202,7 @@ public class ReScoutAI : EnemyBase
         StateUpdater();
         SpriteFlip();
 
-        if (isGrounded && groundDisableTimer <= 0)
-        {
-            rb.gravityScale = 10f;
-        }
-        else
-        {
-            if (rb.velocity.y > 5f)
-            {
-                rb.gravityScale = 10f;
-            }
-            else
-            {
-                rb.gravityScale = 20f;
-            }
-        }
+        UpdateGravityScale();
 
         waitStartTimer -= Time.deltaTime;
         groundDisableTimer -= Time.deltaTime;
@@ -265,6 +246,9 @@ public class ReScoutAI : EnemyBase
     // -------------------------------------------------------------------------
     #region Movement and State Logic
     #region Decision and Movement
+    /// <summary>
+    /// Determines movement input based on current state, target position, and obstacles.
+    /// </summary>
     void DirectionBehavior()
     {
         if (currState == State.LookingForCover)
@@ -306,14 +290,17 @@ public class ReScoutAI : EnemyBase
 
         if (currState == State.Stay)
         {
-            xInput = 0; // Garante que fique parado no frame atual.
+            xInput = 0; // Ensure the enemy remains still while in the Stay state.
         }
         else
         {
-            xInput = dir * 0.4f; // Wander usa a direção padrão.
+            xInput = dir * 0.4f; // Use the current wander direction while roaming.
         }
     }
 
+    /// <summary>
+    /// Updates the current AI state machine and transitions between states.
+    /// </summary>
     void StateUpdater()
     {
         switch (currState)
@@ -414,6 +401,9 @@ public class ReScoutAI : EnemyBase
         }
     }
 
+    /// <summary>
+    /// Flips the sprite to face the current movement or target direction.
+    /// </summary>
     void SpriteFlip()
     {
         float lookDirection = 0f;
@@ -437,6 +427,9 @@ public class ReScoutAI : EnemyBase
         }
     }
 
+    /// <summary>
+    /// Executes a jump if the AI is allowed to jump.
+    /// </summary>
     void Jump()
     {
         if (isCrouched || isPeeking) return;
@@ -449,6 +442,9 @@ public class ReScoutAI : EnemyBase
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
     }
 
+    /// <summary>
+    /// Applies horizontal movement forces based on input and current velocity.
+    /// </summary>
     void Move()
     {
         if (waitStartTimer > 0 || desacelerationDisableTimer > 0) return;
@@ -459,19 +455,19 @@ public class ReScoutAI : EnemyBase
 
         if (xInput != 0)
         {
-            // DERRAPAGEM: só acontece se estiver no chão, mudando de direção e com velocidade.
+            // Use stronger deceleration when changing direction on the ground.
             if (isGrounded && Mathf.Sign(xInput) != Mathf.Sign(rb.velocity.x) && Mathf.Abs(rb.velocity.x) > 0.5f)
             {
-                forceFactor = skidDeceleration; // Frena forte no chão (drift).
+                forceFactor = skidDeceleration; // Apply strong ground skid braking.
             }
             else
             {
-                forceFactor = acceleration; // Aceleração normal (tanto correndo em linha reta quanto no ar).
+                forceFactor = acceleration; // Normal acceleration while moving.
             }
         }
         else
         {
-            forceFactor = deceleration; // Desaceleração passiva ao soltar o botão.
+            forceFactor = deceleration; // Passive slowdown when no input is present.
         }
 
         rb.AddForce(Vector2.right * speedDiff * forceFactor, ForceMode2D.Force);
@@ -483,6 +479,14 @@ public class ReScoutAI : EnemyBase
                 rb.velocity.y
             );
         }
+    }
+
+    private void UpdateGravityScale()
+    {
+        if (isGrounded && groundDisableTimer <= 0)
+            rb.gravityScale = 10f;
+        else
+            rb.gravityScale = rb.velocity.y > 5f ? 10f : 20f;
     }
     #endregion
     #endregion
