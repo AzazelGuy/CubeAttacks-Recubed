@@ -9,6 +9,7 @@ TagManager:
   - DamageBoxEnemy
   - EnemyJump
   - PlayerHurtbox
+  - Cover
   layers:
   - Default
   - TransparentFX

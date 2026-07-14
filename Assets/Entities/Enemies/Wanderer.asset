@@ -16,7 +16,7 @@ MonoBehaviour:
   isImortal: 0
   maxHp: 10
   defense: 3
-  speed: 10
+  speed: 15
   detectionDistance: 10
   hasAttack: 1
   attackDistance: 3.5

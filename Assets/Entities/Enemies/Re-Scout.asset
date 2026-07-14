@@ -16,18 +16,20 @@ MonoBehaviour:
   isImortal: 0
   maxHp: 30
   defense: 4
-  speed: 3
-  detectionDistance: 30
+  speed: 10
+  detectionDistance: 20
   hasAttack: 1
-  attackDistance: 30
-  attackSpeed: 10.8
+  attackDistance: 35
+  attackSpeed: 2
   tier: 0
   type: 1
-  hasDrops: 0
-  drops: []
+  hasDrops: 1
+  drops:
+  - itemPrfab: {fileID: 5340734269998408735, guid: db3b804a7162dfd4a8a71c9ea04434ee, type: 3}
+    chance: 10
   usesWeapon: 1
   weapon: {fileID: 11400000, guid: 097119c20a6e4924c85b915c4ca4145b, type: 2}
   damageAttack: 0
   critChance: 0
   variationPercentage: 0.1
-  enemyPrefab: {fileID: 5748282952624241811, guid: e75c28a760091f4469e1a0910f0db584, type: 3}
+  enemyPrefab: {fileID: 7397035023855370581, guid: 7a69cc91bb76e2c46b9d9632dbf74fa3, type: 3}

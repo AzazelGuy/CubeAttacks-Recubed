@@ -124,8 +124,8 @@ public class EnemyData : ScriptableObject
 [System.Serializable]
 public class DropEntry
 {
-    [Tooltip("Name of the item that can be dropped.")]
-    public string itemName;
+    [Tooltip("Prefab of the item that can be dropped.")]
+    public GameObject itemPrfab;
 
     [Range(0f, 100f)]
     [Tooltip("Chance for this drop to occur, in percent.")]

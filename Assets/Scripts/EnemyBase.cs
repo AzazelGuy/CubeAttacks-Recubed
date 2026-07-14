@@ -12,6 +12,7 @@ public class EnemyBase : MonoBehaviour
     [SerializeField] protected Rigidbody2D rb;
     [SerializeField] protected Collider2D col;
     [SerializeField] protected SpriteRenderer spr;
+    [SerializeField] protected Vector3 dropPositionOffset;
     #endregion
 
     // -------------------------------------------------------------------------
@@ -216,11 +217,17 @@ public class EnemyBase : MonoBehaviour
             currHp -= damageFinal;
         }
 
-        if (!isImortal) currHp -= damageFinal;
         Debug.Log(currHp);
 
         damagepopUp.transform.position = transform.position + offset;
         damagepopUp.GetComponent<DamagePopUp>().Setup(damageFinal);
+
+        if (currHp <= 0f && !isImortal)
+        {
+            TryDropLoot();
+            Destroy(gameObject);
+            return;
+        }
 
         if (playerCrit)
         {
@@ -228,6 +235,24 @@ public class EnemyBase : MonoBehaviour
             var criticalText = Instantiate(popUpDamage);
             criticalText.GetComponent<DamagePopUp>().SetupCrit();
             criticalText.transform.position = transform.position;
+        }
+    }
+
+    private void TryDropLoot()
+    {
+        if (!hasDrops || drops == null || drops.Length == 0)
+            return;
+
+        foreach (DropEntry entry in drops)
+        {
+            if (entry == null || entry.itemPrfab == null)
+                continue;
+
+            float roll = Random.Range(0f, 100f);
+            if (roll <= entry.chance)
+            {
+                Instantiate(entry.itemPrfab, transform.position + dropPositionOffset, Quaternion.identity);
+            }
         }
     }
 

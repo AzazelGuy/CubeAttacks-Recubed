@@ -2,10 +2,11 @@ using System.ComponentModel;
 using UnityEngine;
 
 /// <summary>
-/// Scout-style enemy AI with wandering, staying, chasing, and simple jumping behaviors.
+/// Scout-style enemy AI with wandering, staying, attacking, and simple jumping behaviors.
 /// </summary>
 public class ReScoutAI : EnemyBase
 {
+    #region Serialized Fields
     // -------------------------------------------------------------------------
     // MOVEMENT SETTINGS
     // -------------------------------------------------------------------------
@@ -41,11 +42,6 @@ public class ReScoutAI : EnemyBase
     [Tooltip("Suggested duration for the staying state before wandering again.")]
     [SerializeField] private float stillTime = 10f;
 
-    [Description("This is a suggestion of time, cause it varries by the enemy's % of variation")]
-    private float chaseTimer = 0f;
-
-    [Tooltip("Suggested duration for the chase state before returning to wandering.")]
-    [SerializeField] private float chaseTime = 10f;
     [Description("This is a suggestion of time, cause it varries by the enemy's % of variation")]
     #endregion
 
@@ -93,9 +89,62 @@ public class ReScoutAI : EnemyBase
     [SerializeField] float wallDistance = 0.2f;
 
     bool onWall;
+    private bool previousOnWall;
+
+    [Tooltip("Time the enemy keeps chasing after losing sight of the player.")]
+    [SerializeField] private float targetLoseTime = 5f;
+    private float targetLostTimer = 0f;
+
+    [Tooltip("Random speed multiplier range applied per wander segment.")]
+    [SerializeField] private Vector2 speedVariationRange = new Vector2(0.85f, 1.15f);
+
+    [Tooltip("Chance to stop and stay still after a wander segment ends.")]
+    [SerializeField] [Range(0f, 1f)] private float stopChance = 0.4f;
+
+    [Tooltip("Chance to flip direction after staying still.")]
+    [SerializeField] [Range(0f, 1f)] private float flipChanceAfterStop = 0.5f;
 
     [Tooltip("Origin point used for player detection and line-of-sight checks.")]
     [SerializeField] Transform PlayerDetectionOrigin;
+
+    [Header("Cover")]
+    [Tooltip("Tag used to find cover objects in the scene.")]
+    [SerializeField] private string coverTag = "Cover";
+
+    [Tooltip("Optional manual cover points to search for.")]
+    [SerializeField] private Transform[] coverPoints;
+
+    [Tooltip("Maximum distance to search for cover.")]
+    [SerializeField] private float coverSearchRadius = 25f;
+
+    [Tooltip("How close the AI must get to a cover point to be considered in cover.")]
+    [SerializeField] private float coverReachDistance = 1f;
+
+    [Tooltip("Point used to spawn bullets when peeking.")]
+    [SerializeField] private Transform shootPoint;
+
+    [Tooltip("Weapon component used for aiming and bullet spawning.")]
+    [SerializeField] private ReScoutWeapon enemyWeapon;
+
+    [Tooltip("Time the enemy stays hidden before peeking.")]
+    [SerializeField] private float peekInterval = 3f;
+
+    [Tooltip("How long the enemy stays peeking/shooting.")]
+    [SerializeField] private float peekDuration = 1f;
+    [Tooltip("Number of shots fired while peeking.")]
+    [SerializeField] private int shotsPerPeek = 3;
+    [Tooltip("Delay between peek shots.")]
+    [SerializeField] private float peekShotInterval = 0.25f;
+    [Tooltip("Offset of the player's Origin Point.")]
+    [SerializeField] private Vector3 Offset;
+
+    private Transform selectedCover;
+    private bool isCrouched;
+    private bool isPeeking;
+    private int shotsFired;
+    private float peekTimer;
+    private float peekShotTimer;
+    private float peekDurationTimer;
     #endregion
 
     // -------------------------------------------------------------------------
@@ -106,7 +155,7 @@ public class ReScoutAI : EnemyBase
     [SerializeField] private State currState = State.Wander;
     float xInput;
 
-    [Tooltip("Current target being chased by the enemy.")]
+    [Tooltip("Current detected target for attack behavior.")]
     [SerializeField] private Transform target;
 
     [Tooltip("Sprite transform used for flipping the enemy visually.")]
@@ -116,7 +165,9 @@ public class ReScoutAI : EnemyBase
     [SerializeField] private Animator animator;
     private float attackCooldownTimer;
     #endregion
+    #endregion
 
+    #region Unity Callbacks
     protected override void Start()
     {
         base.Start();
@@ -124,19 +175,29 @@ public class ReScoutAI : EnemyBase
         speed *= Random.Range(1f - variationPercentage, 1f + variationPercentage);
         damage *= Random.Range(1f - variationPercentage, 1f + variationPercentage);
 
-        moveSpeed = speed;
+        moveSpeed = speed * Random.Range(speedVariationRange.x, speedVariationRange.y);
         movingTime *= Random.Range(1f - variationPercentage, 1f + variationPercentage);
         movingTimer = movingTime;
 
         target = null;
-            // Randomizes extra amount of health (in %) and applies it.
-            maxHp *= Random.Range(1f - variationPercentage, 1f + variationPercentage);
-            currHp = maxHp;
+        if (enemyWeapon == null)
+            enemyWeapon = GetComponentInChildren<ReScoutWeapon>();
+
+        if (shootPoint == null && enemyWeapon != null)
+            shootPoint = enemyWeapon.canoDaArma;
+
+        peekTimer = peekInterval;
+
+        // Randomizes extra amount of health (in %) and applies it.
+        maxHp *= Random.Range(1f - variationPercentage, 1f + variationPercentage);
+        currHp = maxHp;
     }
 
     protected void Update()
     {
         CheckActivation();
+        if (!isActive)
+            return;
 
         CheckGround();
         CheckWall();
@@ -167,8 +228,6 @@ public class ReScoutAI : EnemyBase
         jumpBlockTimer -= Time.deltaTime;
         desacelerationDisableTimer -= Time.deltaTime;
 
-        //if (onWall && currState != State.Chase) dir *= -1;
-
         if (currHp <= 0 && !isImortal) Destroy(gameObject);
     }
 
@@ -177,6 +236,9 @@ public class ReScoutAI : EnemyBase
         Move();
     }
 
+    #endregion
+
+    #region Physics Callbacks
     protected void OnTriggerStay2D(Collider2D collision)
     {
         if (collision == null) return;
@@ -187,12 +249,42 @@ public class ReScoutAI : EnemyBase
         }
     }
 
+    private bool IsTriggerInsideCover(Collider2D collision)
+    {
+        if (selectedCover == null) return false;
+
+        Vector2 coverPosition = selectedCover.position;
+        Vector2 triggerPosition = collision.bounds.center;
+        float distance = Vector2.Distance(coverPosition, triggerPosition);
+        return distance <= coverReachDistance;
+    }
+    #endregion
+
     // -------------------------------------------------------------------------
     // MOVEMENT AND STATE LOGIC
     // -------------------------------------------------------------------------
     #region Movement and State Logic
+    #region Decision and Movement
     void DirectionBehavior()
     {
+        if (currState == State.LookingForCover)
+        {
+            if (selectedCover != null)
+            {
+                xInput = Mathf.Sign(selectedCover.position.x - transform.position.x);
+                return;
+            }
+
+            xInput = 0f;
+            return;
+        }
+
+        if (currState == State.Hidding || currState == State.Shooting)
+        {
+            xInput = 0f;
+            return;
+        }
+
         if (target != null)
         {
             float distanceToTarget = Mathf.Abs(target.position.x - transform.position.x);
@@ -202,22 +294,17 @@ public class ReScoutAI : EnemyBase
                 xInput = Mathf.Sign(target.position.x - transform.position.x);
                 attackCooldownTimer = 0f;
             }
-            else
-            {
-                xInput = 0f;
-                attackCooldownTimer += Time.deltaTime;
-                float heightDistanceToTarget = Mathf.Abs(target.position.y - transform.position.y);
-                if (attackCooldownTimer >= attackSpeed && heightDistanceToTarget <= 2f)
-                {
-                    TriggerAttackAnimation();
-                    attackCooldownTimer = 0f;
-                    float direction = Mathf.Sign(target.position.x - transform.position.x);
-                    desacelerationDisableTimer = desacelerationDisableTime;
-                    rb.AddForce(Vector2.right * direction * postAttackPushForce, ForceMode2D.Impulse);
-                }
-            }
         }
-        else if (currState == State.Stay)
+
+        if (onWall && !previousOnWall && currState != State.Hidding && currState != State.Shooting)
+        {
+            dir *= -1;
+            xInput = dir * 0.4f;
+        }
+
+        previousOnWall = onWall;
+
+        if (currState == State.Stay)
         {
             xInput = 0; // Garante que fique parado no frame atual.
         }
@@ -233,30 +320,115 @@ public class ReScoutAI : EnemyBase
         {
             case State.Wander:
                 movingTimer -= Time.deltaTime;
-                if (movingTimer <= 0) ChangeState(State.Stay); // Cansei de andar, vou parar.
+                if (movingTimer <= 0)
+                {
+                    if (Random.value < stopChance)
+                    {
+                        ChangeState(State.Stay);
+                    }
+                    else
+                    {
+                        ChangeState(State.Wander);
+                    }
+                }
+                break;
+
+            case State.LookingForCover:
+                if (target == null)
+                {
+                    ChangeState(State.Wander);
+                    break;
+                }
+
+                if (selectedCover == null)
+                {
+                    FindCover();
+                }
+
+                if (selectedCover != null)
+                {
+                    float distanceToCover = Vector2.Distance(transform.position, selectedCover.position);
+                    if (distanceToCover <= coverReachDistance)
+                    {
+                        ChangeState(State.Hidding);
+                    }
+                }
+                break;
+
+            case State.Hidding:
+                if (target == null)
+                {
+                    ChangeState(State.Wander);
+                    break;
+                }
+
+                SetCrouchState(true);
+                peekTimer -= Time.deltaTime;
+                if (peekTimer <= 0f)
+                {
+                    ChangeState(State.Shooting);
+                }
+                break;
+
+            case State.Shooting:
+                if (target == null)
+                {
+                    ChangeState(State.Wander);
+                    break;
+                }
+
+                if (!isPeeking)
+                {
+                    StartPeek();
+                }
+
+                peekShotTimer -= Time.deltaTime;
+                if (peekShotTimer <= 0f && shotsFired < shotsPerPeek)
+                {
+                    ShootAtTarget();
+                    shotsFired++;
+                    peekShotTimer = peekShotInterval;
+                }
+
+                if (shotsFired >= shotsPerPeek)
+                {
+                    isPeeking = false;
+                    SetCrouchState(true);
+                    peekTimer = peekInterval;
+                    ChangeState(State.Hidding);
+                }
                 break;
 
             case State.Stay:
                 stillTimer -= Time.deltaTime;
-                if (stillTimer <= 0) ChangeState(State.Wander); // Cansei de ficar parado, vou andar.
+                if (stillTimer <= 0)
+                {
+                    if (Random.value < flipChanceAfterStop)
+                    {
+                        dir *= -1;
+                    }
+                    ChangeState(State.Wander);
+                }
                 break;
 
-            /*case State.Chase:
-                chaseTimer -= Time.deltaTime;
-                if (chaseTimer <= 0)
-                {
-                    ChangeState(State.Wander); // Perdi o player de vista, vou voltar a passear.
-                    target = null;
-                }
-                break;*/
         }
     }
 
     void SpriteFlip()
     {
-        float lookDirection = (target != null)
-            ? Mathf.Sign(target.position.x - transform.position.x)
-            : dir;
+        float lookDirection = 0f;
+        if (currState == State.LookingForCover)
+        {
+            lookDirection = Mathf.Sign(xInput);
+        }
+        else if (target != null)
+        {
+            lookDirection = Mathf.Sign(target.position.x - transform.position.x);
+        }
+        else
+        {
+            lookDirection = dir;
+        }
 
         if (lookDirection != 0)
         {
@@ -267,6 +439,7 @@ public class ReScoutAI : EnemyBase
 
     void Jump()
     {
+        if (isCrouched || isPeeking) return;
         groundDisableTimer = groundDisableTime;
         jumpBlockTimer = jumpBlockTime;
 
@@ -311,7 +484,10 @@ public class ReScoutAI : EnemyBase
             );
         }
     }
+    #endregion
+    #endregion
 
+    #region Detection
     void DetectPlayer()
     {
         Collider2D player = Physics2D.OverlapCircle(
@@ -320,23 +496,38 @@ public class ReScoutAI : EnemyBase
             playerLayers
         );
 
-        if (player == null)
-            return;
-
-        Vector2 direction = (player.transform.position - PlayerDetectionOrigin.position).normalized;
-        float distance = Vector2.Distance(PlayerDetectionOrigin.position, player.transform.position);
-
-        RaycastHit2D wall = Physics2D.Raycast(
-            PlayerDetectionOrigin.position,
-            direction,
-            distance,
-            obstacleLayers
-        );
-
-        if (wall.collider == null)
+        bool playerDetected = false;
+        if (player != null)
         {
-            target = player.transform.root;
-            //ChangeState(State.Chase);
+            Vector2 direction = (player.transform.position - PlayerDetectionOrigin.position).normalized;
+            float distance = Vector2.Distance(PlayerDetectionOrigin.position, player.transform.position);
+
+            RaycastHit2D wall = Physics2D.Raycast(
+                PlayerDetectionOrigin.position,
+                direction,
+                distance,
+                obstacleLayers
+            );
+
+            if (wall.collider == null)
+            {
+                target = player.transform.root;
+                targetLostTimer = 0f;
+                playerDetected = true;
+                if (currState != State.Hidding && currState != State.Shooting)
+                {
+                    ChangeState(State.LookingForCover);
+                }
+            }
+        }
+
+        if (target != null && !playerDetected)
+        {
+            targetLostTimer += Time.deltaTime;
+            if (targetLostTimer >= targetLoseTime)
+            {
+                ClearTarget();
+            }
         }
     }
 
@@ -352,7 +543,22 @@ public class ReScoutAI : EnemyBase
             return;
 
         target = player.transform.root;
-        //ChangeState(State.Chase);
+        targetLostTimer = 0f;
+        if (currState != State.Hidding && currState != State.Shooting)
+        {
+            ChangeState(State.LookingForCover);
+        }
+    }
+
+    private void ClearTarget()
+    {
+        target = null;
+        targetLostTimer = 0f;
+        selectedCover = null;
+        if (currState != State.Wander)
+        {
+            ChangeState(State.Wander);
+        }
     }
 
     void CheckGround()
@@ -385,6 +591,85 @@ public class ReScoutAI : EnemyBase
         onWall = hit;
     }
 
+    private void FindCover()
+    {
+        selectedCover = null;
+        float closestDistance = float.MaxValue;
+
+        if (coverPoints != null)
+        {
+            foreach (Transform cover in coverPoints)
+            {
+                if (cover == null) continue;
+                float dist = Vector2.Distance(transform.position, cover.position);
+                if (dist <= coverSearchRadius && dist < closestDistance)
+                {
+                    closestDistance = dist;
+                    selectedCover = cover;
+                }
+            }
+        }
+
+        if (selectedCover == null && !string.IsNullOrWhiteSpace(coverTag))
+        {
+            GameObject[] covers = GameObject.FindGameObjectsWithTag(coverTag);
+            foreach (GameObject coverObject in covers)
+            {
+                if (coverObject == null) continue;
+                float dist = Vector2.Distance(transform.position, coverObject.transform.position);
+                if (dist <= coverSearchRadius && dist < closestDistance)
+                {
+                    closestDistance = dist;
+                    selectedCover = coverObject.transform;
+                }
+            }
+        }
+    }
+
+    private void SetCrouchState(bool crouched)
+    {
+        isCrouched = crouched;
+        if (animator == null) return;
+
+        animator.SetBool("IsCrouched", crouched);
+    }
+
+    private void StartPeek()
+    {
+        isPeeking = true;
+        shotsFired = 0;
+        peekShotTimer = 0f;
+        SetCrouchState(false);
+        animator.SetTrigger("Peek");
+    }
+
+    private void ShootAtTarget()
+    {
+        if (weapon == null || weapon.bulletPrefab == null || target == null) return;
+
+        Vector2 direction = ((target.position + Offset) - (shootPoint != null ? shootPoint.position : PlayerDetectionOrigin.position)).normalized;
+
+        if (enemyWeapon != null && weapon != null)
+        {
+            enemyWeapon.Shoot(weapon, direction);
+            return;
+        }
+
+        Transform spawnPoint = shootPoint != null ? shootPoint : PlayerDetectionOrigin;
+        if (spawnPoint == null) return;
+
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        GameObject bullet = Instantiate(weapon.bulletPrefab, spawnPoint.position, Quaternion.Euler(0f, 0f, angle));
+
+        EnemyBulletProjectile projectile = bullet.GetComponent<EnemyBulletProjectile>();
+        if (projectile != null)
+        {
+            projectile.Initialize(direction, weapon.bulletDamage);
+        }
+    }
+    #endregion
+
+    #region State Transitions
     private void ChangeState(State newState)
     {
         if (currState == newState || !isGrounded) return;
@@ -397,22 +682,39 @@ public class ReScoutAI : EnemyBase
         switch (newState)
         {
             case State.Wander:
-                movingTimer = movingTime;
+                movingTimer = Random.Range(movingTime * 0.8f, movingTime * 1.2f);
+                moveSpeed = speed * Random.Range(speedVariationRange.x, speedVariationRange.y);
                 dir = Random.Range(0, 2) == 0 ? 1 : -1;
+                selectedCover = null;
+                isPeeking = false;
+                SetCrouchState(false);
                 break;
 
-            case State.Stay:
-                stillTimer = stillTime;
+            case State.LookingForCover:
+                FindCover();
                 xInput = 0;
                 break;
 
-            /*case State.Chase:
-                chaseTimer = chaseTime;
-                break;*/
+            case State.Hidding:
+                xInput = 0;
+                peekTimer = peekInterval;
+                isPeeking = false;
+                SetCrouchState(true);
+                break;
+
+            case State.Shooting:
+                xInput = 0;
+                break;
+
+            case State.Stay:
+                stillTimer = Random.Range(stillTime * 0.8f, stillTime * 1.2f);
+                xInput = 0;
+                break;
         }
     }
     #endregion
 
+    #region Attack Helpers
     public override void OnHit(float recievedDamage)
     {
         base.OnHit(recievedDamage);
@@ -423,19 +725,26 @@ public class ReScoutAI : EnemyBase
     {
         if (animator == null) return;
 
-        //animator.SetBool("isChasing", currState == State.Chase);
+        animator.SetBool("IsCrouched", currState == State.Hidding || currState == State.Shooting);
+        animator.SetBool("IsPeeking", currState == State.Shooting);
 
         switch (currState)
         {
             case State.Wander:
                 animator.SetTrigger("Move");
                 break;
+            case State.LookingForCover:
+                animator.SetTrigger("Move");
+                break;
+            case State.Hidding:
+                animator.SetTrigger("Crouch");
+                break;
+            case State.Shooting:
+                animator.SetTrigger("Peek");
+                break;
             case State.Stay:
                 animator.SetTrigger("Rest");
                 break;
-            /*case State.Chase:
-                animator.SetTrigger("Move");
-                break;*/
         }
     }
 
@@ -450,7 +759,9 @@ public class ReScoutAI : EnemyBase
     public void StopAttack()
     {
     }
+    #endregion
 
+    #region Debug
     void OnDrawGizmos()
     {
         if (groundCheck != null)
@@ -467,5 +778,14 @@ public class ReScoutAI : EnemyBase
 
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, attackDistance);
+
+        if (shootPoint != null && target != null)
+        {
+            Gizmos.color = Color.cyan;
+            Vector3 aimDirection = (target.position + Offset - shootPoint.position).normalized;
+            Gizmos.DrawLine(shootPoint.position, shootPoint.position + aimDirection * 2f);
+            Gizmos.DrawSphere(shootPoint.position + aimDirection * 2f, 0.1f);
+        }
     }
+    #endregion
 }
