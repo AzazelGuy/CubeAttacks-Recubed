@@ -402,6 +402,7 @@ MonoBehaviour:
   rb: {fileID: 7397035023855370591}
   col: {fileID: 3785628424461653739}
   spr: {fileID: 3785628424461653736}
+  dropPositionOffset: {x: 0, y: -1, z: 0}
   enemyData: {fileID: 11400000, guid: c5b0dec6ec343f74692bc17a9e264059, type: 2}
   popUpDamage: {fileID: 587718273397493148, guid: d4c3c89e52dc9de47bc687a0d437012a, type: 3}
   damageEffect: {fileID: 0}
@@ -412,7 +413,6 @@ MonoBehaviour:
   acceleration: 10
   deceleration: 10
   skidDeceleration: 10
-  postAttackPushForce: 2
   desacelerationDisableTime: 0.25
   movingTime: 10
   stillTime: 10
@@ -429,6 +429,10 @@ MonoBehaviour:
   groundDisableTime: 0.1
   wallCheck: {fileID: 667225822196997731}
   wallDistance: 0.87
+  targetLoseTime: 5
+  speedVariationRange: {x: 0.85, y: 1.15}
+  stopChance: 0.4
+  flipChanceAfterStop: 0.5
   PlayerDetectionOrigin: {fileID: 6561098174950135208}
   coverTag: Cover
   coverPoints:

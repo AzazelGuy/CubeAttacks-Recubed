@@ -27,8 +27,6 @@ public class ReScoutAI : EnemyBase
     //[SerializeField] private float postAttackPushForce = 2f;
 
     [Tooltip("Time during which deceleration is disabled after an attack.")]
-    [SerializeField] private float desacelerationDisableTime = 0.25f;
-    private float desacelerationDisableTimer = 0f;
     private int dir = 1; // 1 = right, -1 = left
     private float movingTimer = 0f;
 
@@ -124,8 +122,6 @@ public class ReScoutAI : EnemyBase
     [Tooltip("Time the enemy stays hidden before peeking.")]
     [SerializeField] private float peekInterval = 3f;
 
-    [Tooltip("How long the enemy stays peeking/shooting.")]
-    [SerializeField] private float peekDuration = 1f;
     [Tooltip("Number of shots fired while peeking.")]
     [SerializeField] private int shotsPerPeek = 3;
     [Tooltip("Delay between peek shots.")]
@@ -135,7 +131,7 @@ public class ReScoutAI : EnemyBase
 
     private Transform selectedCover;
     private bool isCrouched;
-    private bool isPeeking;
+    private bool isPeeking; 
     private int shotsFired;
     private float peekTimer;
     private float peekShotTimer;
@@ -207,7 +203,6 @@ public class ReScoutAI : EnemyBase
         waitStartTimer -= Time.deltaTime;
         groundDisableTimer -= Time.deltaTime;
         jumpBlockTimer -= Time.deltaTime;
-        desacelerationDisableTimer -= Time.deltaTime;
 
         if (currHp <= 0 && !isImortal) Destroy(gameObject);
     }
@@ -447,7 +442,7 @@ public class ReScoutAI : EnemyBase
     /// </summary>
     void Move()
     {
-        if (waitStartTimer > 0 || desacelerationDisableTimer > 0) return;
+        if (waitStartTimer > 0) return;
 
         float targetVelocity = xInput * moveSpeed;
         float speedDiff = targetVelocity - rb.velocity.x;

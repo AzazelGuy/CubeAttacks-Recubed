@@ -10,6 +10,7 @@ TagManager:
   - EnemyJump
   - PlayerHurtbox
   - Cover
+  - Ice
   layers:
   - Default
   - TransparentFX
@@ -61,6 +62,9 @@ TagManager:
     locked: 0
   - name: Foreground
     uniqueID: 2456588631
+    locked: 0
+  - name: Effects
+    uniqueID: 4112159093
     locked: 0
   - name: Unrender
     uniqueID: 2225823753

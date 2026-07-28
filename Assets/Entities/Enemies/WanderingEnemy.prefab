@@ -333,8 +333,10 @@ MonoBehaviour:
   rb: {fileID: 5748282952624241817}
   col: {fileID: 5475973116234086573}
   spr: {fileID: 2155196948833151790}
+  dropPositionOffset: {x: 0, y: -1, z: 0}
   enemyData: {fileID: 11400000, guid: ff86498678ed11f44b6b1e6955d85115, type: 2}
   popUpDamage: {fileID: 587718273397493148, guid: d4c3c89e52dc9de47bc687a0d437012a, type: 3}
+  damageEffect: {fileID: 0}
   waitStartTime: 0.5
   activationDistance: 45
   deactivationDistance: 50

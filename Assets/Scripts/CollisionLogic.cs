@@ -2,9 +2,7 @@ using UnityEngine;
 
 public class CollisionLogic : MonoBehaviour
 {
-    [SerializeField] private PlayerData playerData;
-    [SerializeField] HealthControlPlayer hpContrl;
-    [SerializeField] private WeaponController weaponController;
+    [SerializeField] private WeaponControllerPlayer weaponController;
     [SerializeField] private float invenciTime = 0.2f;
     private float invenciTimer;
 
@@ -18,7 +16,7 @@ public class CollisionLogic : MonoBehaviour
     {
         if (collision != null)
         {
-            if (collision.CompareTag("PickUp"))
+            if (collision.CompareTag("PickUp") && weaponController != null)
             {
                 weaponController.RecarregarArmas();
                 Destroy(collision.gameObject);
@@ -36,9 +34,11 @@ public class CollisionLogic : MonoBehaviour
             if (inimigo != null && invenciTimer < 0)
             {
                 invenciTimer = invenciTime;
-                playerData.playerHealthCurrent -= inimigo.AttackPlayer();
-                hpContrl.ResetTimer();
-                PlayerMovement player = GetComponentInParent<PlayerMovement>();
+                PlayerCharacterBase player = GetComponentInParent<PlayerCharacterBase>();
+
+                inimigo.AttackPlayer(player);
+                PlayerInGameDataHolder.Instance.ResetTimer();
+                PlayerMovement playerMove = GetComponentInParent<PlayerMovement>();
                 float dir = Mathf.Sign(transform.position.x - inimigo.transform.position.x);
 
                 Vector2 forca = new Vector2(
@@ -46,15 +46,18 @@ public class CollisionLogic : MonoBehaviour
                 Knockback.y
                 );
 
-                player.AplicarEmpurraoRecuo(forca);
+                playerMove.AplicarEmpurraoRecuo(forca);
                 return;
             }
             else if (bullet != null && invenciTimer < 0)
             {
                 invenciTimer = invenciTime;
-                playerData.playerHealthCurrent -= bullet.AttackPlayer();
-                hpContrl.ResetTimer();
-                PlayerMovement player = GetComponentInParent<PlayerMovement>();
+                PlayerCharacterBase player = GetComponentInParent<PlayerCharacterBase>();
+
+                inimigo.AttackPlayer(player);
+                PlayerInGameDataHolder.Instance.ResetTimer();
+
+                PlayerMovement playerMove = GetComponentInParent<PlayerMovement>();
                 float dir = Mathf.Sign(transform.position.x - bullet.transform.position.x);
 
                 Vector2 forca = new Vector2(
@@ -62,7 +65,7 @@ public class CollisionLogic : MonoBehaviour
                 1.5f
                 );
                 Destroy(bullet.gameObject);
-                player.AplicarEmpurraoRecuo(forca);
+                playerMove.AplicarEmpurraoRecuo(forca);
                 return;
             }
         }
