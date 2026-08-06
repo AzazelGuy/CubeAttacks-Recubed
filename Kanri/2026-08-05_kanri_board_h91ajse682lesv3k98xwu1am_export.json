@@ -1,0 +1,465 @@
+{
+  "columns": [
+    {
+      "cards": [
+        {
+          "id": "g8m89cr4j3co44ybazzznchw",
+          "name": "More Weapons",
+          "tags": [
+            {
+              "id": "rf3x8ptaympd5khq6toapbd7",
+              "text": "Weapons"
+            },
+            {
+              "id": "hmibycbc4k92vyewsme5duqj",
+              "text": "Player"
+            },
+            {
+              "id": "u4ho92h5afhhzt8vu7pjwns9",
+              "text": "Gameplay"
+            }
+          ],
+          "tasks": [
+            {
+              "finished": false,
+              "id": "ksa51affkzfdpm19hmkzhxl6",
+              "name": "Revolver"
+            },
+            {
+              "finished": false,
+              "id": "o8a4gpgqobw2oa6k1me9hyk9",
+              "name": "Hand Cannon"
+            },
+            {
+              "finished": false,
+              "id": "wb00kk6wa55upfahixxudphd",
+              "name": "Grenade Launcher"
+            },
+            {
+              "finished": false,
+              "id": "jvj61uov0su5aj50klk3nolp",
+              "name": "RPG"
+            }
+          ]
+        },
+        {
+          "description": "<h2>Goal</h2><p>Create a temporary music system for development that randomly selects placeholder tracks matching the current level's mood. This helps avoid getting attached to a single song (\"temp track syndrome\") and allows testing the level with different music while preserving the intended atmosphere.</p><h2>Features</h2><ul><li><p>Music organized by <strong>Mood</strong> (e.g. Underwater, Factory, Forest, Boss).</p></li><li><p>Each mood contains:</p><ul><li><p>Exploration/Calm tracks.</p></li><li><p>Combat tracks.</p></li></ul></li><li><p>On level start, randomly choose a track from the appropriate playlist.</p></li><li><p>When combat begins, switch to a random Combat track from the same mood.</p></li><li><p>When combat ends, return to a random Exploration track from the same mood.</p></li><li><p>Avoid repeating the same track consecutively when possible.</p></li></ul><h2>Benefits</h2><ul><li><p>Prevents becoming attached to one placeholder song.</p></li><li><p>Tests whether the level's atmosphere works independently of a specific soundtrack.</p></li><li><p>Makes it easier to identify the desired emotional tone for future original music.</p></li><li><p>Allows placeholder tracks to be replaced later without changing the game's music logic.</p></li></ul><h2>Future</h2><p>Replace placeholder songs with original tracks while keeping the same mood/category structure.</p>",
+          "id": "vpffpf1oi8d7rggycgrj4b88",
+          "name": "Debug Placeholder Music System",
+          "tags": [
+            {
+              "id": "qzzcwmiadrscrc5mov2ws4eu",
+              "text": "Music"
+            },
+            {
+              "id": "mv09ltx5z7g04hpke41yehf0",
+              "text": "Audio"
+            },
+            {
+              "id": "cj57v7qufkawze6447vmezja",
+              "text": "SFX"
+            }
+          ],
+          "tasks": [
+            {
+              "finished": false,
+              "id": "pb7wt2ewo0oln0yk0n4iyx35",
+              "name": "SFX Shooting, Enemies and Player"
+            },
+            {
+              "finished": false,
+              "id": "mc58ko40evvxp5gr0op868y1",
+              "name": "SFX Enemies"
+            },
+            {
+              "finished": false,
+              "id": "bm4t8dgbfo1kinrsnubviodh",
+              "name": "SFX Actions (Jump, Walk, etc)"
+            },
+            {
+              "finished": false,
+              "id": "rn9eqwl9i5f7impcpbg2bzbw",
+              "name": "Music Background (for Any Level)"
+            },
+            {
+              "finished": false,
+              "id": "wrv3tj5juen29yinmr72enqf",
+              "name": "Music Hub World"
+            },
+            {
+              "finished": false,
+              "id": "wcthr9702jamk03iyjosbaj2",
+              "name": "Music Main Menu"
+            }
+          ]
+        },
+        {
+          "id": "uvbc87fsjqhsraby4lgavlzn",
+          "name": "Demo Stages"
+        },
+        {
+          "id": "vjga9ai3taklg87ngo9f98yw",
+          "name": "3D HubWorld"
+        },
+        {
+          "id": "a86vzx2xiukxe9ky6lcz3efi",
+          "name": "Main Menu"
+        },
+        {
+          "id": "zu6kwf77kf84mxo6213jrvzo",
+          "name": "Playtest Dev"
+        },
+        {
+          "id": "hntlqny5641htgrrnevhwqiy",
+          "name": "Playtest Others"
+        },
+        {
+          "id": "kn60xljg20lv589g5k7214v0",
+          "name": "Animations"
+        },
+        {
+          "id": "l86p76ftxjb71xgb5uuilizn",
+          "name": "Improve Enemy AI"
+        },
+        {
+          "id": "e8i7p5byzk53b565ggmzqq5y",
+          "name": "Finalized Music and Audio"
+        },
+        {
+          "id": "hg9ue3ni5nm4wikicrd0naj3",
+          "name": "Characters",
+          "tasks": [
+            {
+              "finished": false,
+              "id": "luxvq071jlnrgfj3mw53f64v",
+              "name": "Scratchy"
+            },
+            {
+              "finished": false,
+              "id": "vcm2sn8b3kagyuc7oqbat1or",
+              "name": "Azazelo"
+            },
+            {
+              "finished": false,
+              "id": "owjhsqldpvson4wy5mgenr5t",
+              "name": "SimpleZel"
+            },
+            {
+              "finished": false,
+              "id": "qyhsqqduss7tzrtohdq5m9ja",
+              "name": "Moon"
+            },
+            {
+              "finished": false,
+              "id": "ghk9qoe7qtn5cxz7qzsgv3v1",
+              "name": "Muscular Cubert"
+            },
+            {
+              "finished": false,
+              "id": "nrlsbs69atf7dsbmr0a4va8n",
+              "name": "Milena (Bunny with huge flapping ears"
+            }
+          ]
+        }
+      ],
+      "id": "m6dky0ty7peknl0fygiaiv0c",
+      "title": "Todo"
+    },
+    {
+      "cards": [
+        {
+          "description": "<p>To set up the upgrade system I’ll need to make a new PLAYER BASE script so the update can be used on them and define effects via a Upgrade Scriptable Object</p><p></p>",
+          "id": "vw7g1wdpkx3herq42vbquodq",
+          "name": "Equipable Upgrade System",
+          "tags": [
+            {
+              "id": "hmibycbc4k92vyewsme5duqj",
+              "text": "Player"
+            },
+            {
+              "id": "gwhyj1977c1z8ru3idjktdum",
+              "text": "Essential"
+            },
+            {
+              "id": "u4ho92h5afhhzt8vu7pjwns9",
+              "text": "Gameplay"
+            },
+            {
+              "id": "j1sz95ydo7bbnm1fsfskv0ld",
+              "text": "Upgrades"
+            }
+          ],
+          "tasks": [
+            {
+              "finished": true,
+              "id": "uxynnr2h6jjd788v2bmqpkhc",
+              "name": "Set up upgrade system"
+            }
+          ]
+        },
+        {
+          "id": "j5yduy6ow5nvk598azbodix0",
+          "name": "Make Save Stystem",
+          "tags": [
+            {
+              "id": "o8fw69pa88kfdmygnjdrpp85",
+              "text": "Save"
+            },
+            {
+              "id": "gwhyj1977c1z8ru3idjktdum",
+              "text": "Essential"
+            },
+            {
+              "id": "u4ho92h5afhhzt8vu7pjwns9",
+              "text": "Gameplay"
+            },
+            {
+              "id": "hmibycbc4k92vyewsme5duqj",
+              "text": "Player"
+            },
+            {
+              "id": "rf3x8ptaympd5khq6toapbd7",
+              "text": "Weapons"
+            },
+            {
+              "id": "voqoqw1dp9931cboxadeboxb",
+              "text": "TimeTrial"
+            },
+            {
+              "id": "nypdllgo3vninwhv3tcynq8e",
+              "text": "World"
+            }
+          ],
+          "tasks": [
+            {
+              "finished": false,
+              "id": "ruyeh1pcb472ebnqk9vqv5p8",
+              "name": "Store unlocked weaponry, upgrades"
+            },
+            {
+              "finished": false,
+              "id": "awymtugxshy1ahrrknvzoica",
+              "name": "unlocked stages"
+            },
+            {
+              "finished": false,
+              "id": "kzetvtu6t1wq73uziz1nw64f",
+              "name": "stage of the game"
+            },
+            {
+              "finished": false,
+              "id": "c7d9cgpo5rqj83qs8savzq3y",
+              "name": "ranks"
+            },
+            {
+              "finished": false,
+              "id": "mgdqmiqhewlsy6wft8gdct1o",
+              "name": "cash"
+            },
+            {
+              "finished": false,
+              "id": "hhvnfht3q4o2jd5lnvlf9en7",
+              "name": "time"
+            },
+            {
+              "finished": false,
+              "id": "r0zj1bkzlfiaronatq5d2ovw",
+              "name": "Cutcenes"
+            }
+          ]
+        }
+      ],
+      "id": "kvpp30xa5b443nuvmu9rfcrq",
+      "title": "Work in progress"
+    },
+    {
+      "cards": [
+        {
+          "color": "bg-red-600",
+          "description": "<p>Adapt Player data o support future Multiple Characthers</p>",
+          "id": "cxgs0uhb24svbcp3wt3n8zew",
+          "name": "Update Player Data",
+          "tags": [
+            {
+              "id": "u4ho92h5afhhzt8vu7pjwns9",
+              "text": "Gameplay"
+            },
+            {
+              "id": "hmibycbc4k92vyewsme5duqj",
+              "text": "Player"
+            },
+            {
+              "id": "gwhyj1977c1z8ru3idjktdum",
+              "text": "Essential"
+            },
+            {
+              "id": "rf3x8ptaympd5khq6toapbd7",
+              "text": "Weapons"
+            }
+          ],
+          "tasks": [
+            {
+              "finished": true,
+              "id": "zqziirovqrjovxgujpdy77mv",
+              "name": "Define by ID"
+            },
+            {
+              "finished": true,
+              "id": "pu1cjlw44bzt7yc0i7pnxq91",
+              "name": "Name"
+            },
+            {
+              "finished": true,
+              "id": "ikhrz3b1zbo4lsmgrtej2lv7",
+              "name": "Imagem (HUD ICON)"
+            },
+            {
+              "finished": true,
+              "id": "ua3thesb2tqqjp891v7b246e",
+              "name": "Type of attack"
+            },
+            {
+              "finished": true,
+              "id": "g1ypzsbq6k59qgqigkle4hnw",
+              "name": "Movement Script used"
+            },
+            {
+              "finished": true,
+              "id": "ge8h1iec0ydhlehz7n921b5a",
+              "name": "Attack script used"
+            }
+          ]
+        },
+        {
+          "color": "bg-blue-600",
+          "id": "xu4namw2wqznb6t5f43sn6yl",
+          "name": "New Hud",
+          "tags": [
+            {
+              "id": "kvjpes58lg09k8ec6bouamhl",
+              "text": "UI"
+            },
+            {
+              "id": "q56y4e4xzf0dphiej9chbtrm",
+              "text": "Art"
+            },
+            {
+              "id": "gwhyj1977c1z8ru3idjktdum",
+              "text": "Essential"
+            },
+            {
+              "id": "hmibycbc4k92vyewsme5duqj",
+              "text": "Player"
+            }
+          ],
+          "tasks": [
+            {
+              "finished": true,
+              "id": "v44qa528d73ld7kaq6347sj4",
+              "name": "Life Bar"
+            },
+            {
+              "finished": true,
+              "id": "ig4eggpf5roa473kar8gxzqe",
+              "name": "Shield Bar"
+            },
+            {
+              "finished": true,
+              "id": "umci6akghnhnt9qaj32uys3t",
+              "name": "Current Weapon"
+            },
+            {
+              "finished": true,
+              "id": "w6kbj14dsf9lz2ukq9shheho",
+              "name": "Ammo"
+            },
+            {
+              "finished": true,
+              "id": "xldcmf19eps5xg2jmwuaszhf",
+              "name": "Current Characther"
+            },
+            {
+              "finished": true,
+              "id": "pd0n3ulzy27hba7l06c8uu85",
+              "name": "Mini Map"
+            }
+          ]
+        }
+      ],
+      "id": "gzlen4y4cwyv7uibqxl0x3z6",
+      "title": "Done"
+    },
+    {
+      "cards": [],
+      "id": "u4yowgwc9zum4b2w3a6k1vfk",
+      "title": "To Fix"
+    },
+    {
+      "cards": [],
+      "id": "q3dsqcubhplzer50msytj0l1",
+      "title": "FeedBack"
+    },
+    {
+      "cards": [],
+      "id": "py75u5557wrcbampsgrqk6mq",
+      "title": "Concept"
+    }
+  ],
+  "globalTags": [
+    {
+      "id": "qzzcwmiadrscrc5mov2ws4eu",
+      "text": "Music"
+    },
+    {
+      "id": "mv09ltx5z7g04hpke41yehf0",
+      "text": "Audio"
+    },
+    {
+      "id": "cj57v7qufkawze6447vmezja",
+      "text": "SFX"
+    },
+    {
+      "id": "kvjpes58lg09k8ec6bouamhl",
+      "text": "UI"
+    },
+    {
+      "id": "q56y4e4xzf0dphiej9chbtrm",
+      "text": "Art"
+    },
+    {
+      "id": "gwhyj1977c1z8ru3idjktdum",
+      "text": "Essential"
+    },
+    {
+      "id": "hmibycbc4k92vyewsme5duqj",
+      "text": "Player"
+    },
+    {
+      "id": "u4ho92h5afhhzt8vu7pjwns9",
+      "text": "Gameplay"
+    },
+    {
+      "id": "j1sz95ydo7bbnm1fsfskv0ld",
+      "text": "Upgrades"
+    },
+    {
+      "id": "rf3x8ptaympd5khq6toapbd7",
+      "text": "Weapons"
+    },
+    {
+      "id": "o8fw69pa88kfdmygnjdrpp85",
+      "text": "Save"
+    },
+    {
+      "id": "voqoqw1dp9931cboxadeboxb",
+      "text": "TimeTrial"
+    },
+    {
+      "id": "nypdllgo3vninwhv3tcynq8e",
+      "text": "World"
+    }
+  ],
+  "id": "h91ajse682lesv3k98xwu1am",
+  "lastEdited": "2026-08-05T15:50:15.980Z",
+  "title": "Cube Attacks Recubed"
+}

@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1058598149536917711}
   - component: {fileID: 6526388399532696228}
   - component: {fileID: 4320349764287098352}
+  - component: {fileID: 4406609901456529120}
   m_Layer: 0
   m_Name: DamagePopUp
   m_TagString: Untagged
@@ -78,7 +79,7 @@ MeshRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 69341353
-  m_SortingLayer: 7
+  m_SortingLayer: 8
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &6526388399532696228
@@ -217,3 +218,24 @@ MonoBehaviour:
     m_NumAlphaKeys: 2
   moveYSpeed: 2
   disappearSpeed: 3
+--- !u!95 &4406609901456529120
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 587718273397493148}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: ea750ed25493cd94eb369bbc3cd9d115, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

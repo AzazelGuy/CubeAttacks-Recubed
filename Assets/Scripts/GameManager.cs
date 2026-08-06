@@ -1,26 +1,30 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+// Inside GameManager.cs or your persistent Boot script:
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
-    public int RandomSeed { get; private set; }
+    
+    public PlayerSaveData currentSaveData { get; private set; }
 
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(Instance);
+            DontDestroyOnLoad(gameObject);
+            
+            // Load save file on game boot
+            currentSaveData = SaveSystem.LoadGame();
         }
         else
         {
             Destroy(gameObject);
-            return;
         }
+    }
 
-        RandomSeed = System.DateTime.Now.Millisecond + System.DateTime.Now.Second * 1000 + System.DateTime.Now.Minute * 60000;
-        Random.InitState(RandomSeed);
+    public void SaveCurrentProgress()
+    {
+        SaveSystem.SaveGame(currentSaveData);
     }
 }

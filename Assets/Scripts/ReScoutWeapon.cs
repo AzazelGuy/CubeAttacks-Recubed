@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class ReScoutWeapon : MonoBehaviour
@@ -29,7 +27,6 @@ public class ReScoutWeapon : MonoBehaviour
         scale.y = (direction.x < 0f) ? -1f : 1f;
         gunPivot.localScale = scale;
     }
-
     public void Shoot(WeaponData arma, Vector2 direction, int shotCount = 1)
     {
         if (arma == null || arma.bulletPrefab == null || canoDaArma == null || direction.sqrMagnitude < 0.0001f) return;
@@ -46,6 +43,8 @@ public class ReScoutWeapon : MonoBehaviour
             if (projectile != null)
             {
                 projectile.Initialize(shotDirection, arma.bulletDamage);
+                projectile.SetEnemy(gameObject);
+                Debug.Log(projectile.GetEnemy);
             }
         }
     }

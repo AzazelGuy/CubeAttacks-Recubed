@@ -1,12 +1,13 @@
 using UnityEngine;
-using UnityEditor.Animations;
 
 /// <summary>
 /// Base class for enemy behavior, stats, activation, and combat interactions.
 /// </summary>
 public class PlayerCharacterBase : MonoBehaviour
 {
-    [SerializeField] protected Transform damageEffect;
+    [SerializeField] protected Transform damageEffectHealth;
+    [SerializeField] protected Transform damageEffectShield;
+
     [SerializeField] protected Transform popUpDamage;
 
     // -------------------------------------------------------------------------
@@ -60,7 +61,6 @@ public class PlayerCharacterBase : MonoBehaviour
     #region Player Visual Data
     [Header("Visual do jogador")]
     protected Sprite playerHudIcon;
-    protected AnimatorController playerAnimations;
 
     [Range(0, 10)]
     protected ParticleSystem[] particles;
@@ -104,10 +104,7 @@ public class PlayerCharacterBase : MonoBehaviour
         }
 
         playerHudIcon = playerVisualData.playerHudIcon;
-        playerAnimations = playerVisualData.playerAnimations;
         particles = playerVisualData.particles;
-
-        if (anim != null) anim.runtimeAnimatorController = playerAnimations;
     }
     #endregion
 
@@ -117,7 +114,20 @@ public class PlayerCharacterBase : MonoBehaviour
     #region Combat Logic
     public virtual void OnPlayerHit(float recievedDamage)
     {
-        if (damageEffect != null) { Instantiate(damageEffect, transform); }
+        if (damageEffectHealth != null && damageEffectShield != null) 
+        { 
+            if (PlayerInGameDataHolder.Instance.Shield > 0)
+            Instantiate(damageEffectShield, transform);
+            else Instantiate(damageEffectHealth, transform);
+            
+        }
+
+        if (PlayerInGameDataHolder.Instance.HasUpgradeEquipped("up_Pyromaniac"))
+        {
+            UpgradeSystemDataSO Fire = PlayerInGameDataHolder.Instance.GetUpgradeDataBase.GetUpgradeByID("up_Pyromaniac");
+
+            Instantiate(Fire.componentPrefab,transform.position, Quaternion.identity);
+        }
         Vector3 offset = new Vector3(Random.Range(-2f, 2f), Random.Range(-2f, 2f));
         var damagepopUp = Instantiate(popUpDamage);
 

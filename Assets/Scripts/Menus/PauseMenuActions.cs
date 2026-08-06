@@ -9,7 +9,7 @@ public class PauseMenuActions : MonoBehaviour
 
     [SerializeField] private GameObject pauseMenuGroup;
 
-    private bool isPaused;
+    private bool isPaused = false;
     private bool playingAnimation;
 
     void Awake()
@@ -17,73 +17,121 @@ public class PauseMenuActions : MonoBehaviour
         if (instance == null)
         {
             instance = this;
+            DontDestroyOnLoad(gameObject); // Dica: passe o gameObject aqui para persistir a hierarquia
         }
         else
         {
             Destroy(gameObject);
+            return;
         }
-        pauseMenuGroup.SetActive(false);
+        
+        if (pauseMenuGroup) pauseMenuGroup.SetActive(false);
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape) && !playingAnimation)
+        // 🔒 FAILSAFE: Se estiver rodando a animação de pause OU se o jogo estiver mudando de cena, NÃO DEIXA PAUSAR!
+        if (Input.GetKeyDown(KeyCode.Escape) && PodePausar())
         {
-            string pauseTrigger = isPaused ? "Unpause" : "Pause";
-            animator.SetTrigger(pauseTrigger);
+            TogglePause();
         }
     }
 
     public void Resume()
     {
-        if (playingAnimation) return;
-        string pauseTrigger = isPaused ? "Unpause" : "Pause";
-        animator.SetTrigger(pauseTrigger);
+        // 🔒 FAILSAFE adicional para quando o jogador clica no botão "Voltar"
+        if (!PodePausar()) return;
+        TogglePause();
+    }
 
+    // --- FUNÇÃO DE VALIDAÇÃO (NÃO PAUSE MEU AMIGO) ---
+    public bool PodePausar()
+    {
+        // 1. Se estiver rodando a animação de abrir/fechar o pause
+        if (playingAnimation) return false;
+
+        // 2. Se o TransitionManager existir E não estiver no estado Parado
+        if (TransitionScene.Instance != null && TransitionScene.Instance.CurrState != TransitionState.Stoped)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private void TogglePause()
+    {
+        string pauseTrigger = isPaused ? "Unpause" : "Pause";
+        
+        if (animator != null)
+        {
+            animator.SetTrigger(pauseTrigger);
+        }
+        else
+        {
+            // Fallback caso não tenha Animator no menu de pause
+            isPaused = !isPaused;
+            ChangeActive();
+            Time.timeScale = isPaused ? 0f : 1f;
+        }
     }
 
     #region Animation Methods
     public void Pause()
     {
         isPaused = true;
+        Time.timeScale = 0f;
+    }
 
-        Time.timeScale = isPaused ? 0f : 1f;
-    }
     public void UnPause()
-{
-    isPaused = false;
-    EventSystem.current.SetSelectedGameObject(null);
-    
-    // Reset button animations
-    Button[] buttons = pauseMenuGroup.GetComponentsInChildren<Button>();
-    foreach (Button btn in buttons)
     {
-        btn.OnDeselect(null); // Force deselect state
+        isPaused = false;
+        
+        if (EventSystem.current != null)
+        {
+            EventSystem.current.SetSelectedGameObject(null);
+        }
+        
+        // Reset button animations
+        if (pauseMenuGroup != null)
+        {
+            Button[] buttons = pauseMenuGroup.GetComponentsInChildren<Button>();
+            foreach (Button btn in buttons)
+            {
+                btn.OnDeselect(null); // Force deselect state
+            }
+        }
+        
+        Time.timeScale = 1f;
     }
-    
-    Time.timeScale = isPaused ? 0f : 1f;
-}
+
     public void StartAnimation()
     {
         playingAnimation = true;
-        CanvasGroup canvasGroup = pauseMenuGroup.GetComponent<CanvasGroup>();
-        if (canvasGroup) canvasGroup.blocksRaycasts = false;
+        if (pauseMenuGroup != null && pauseMenuGroup.TryGetComponent<CanvasGroup>(out var canvasGroup))
+        {
+            canvasGroup.blocksRaycasts = false;
+        }
     }
 
     public void EndAnimation()
     {
         playingAnimation = false;
-        CanvasGroup canvasGroup = pauseMenuGroup.GetComponent<CanvasGroup>();
-        if (canvasGroup) canvasGroup.blocksRaycasts = true;
+        if (pauseMenuGroup != null && pauseMenuGroup.TryGetComponent<CanvasGroup>(out var canvasGroup))
+        {
+            canvasGroup.blocksRaycasts = true;
+        }
         ChangeActive();
     }
+
     public void ChangeActive()
     {
-        pauseMenuGroup.SetActive(isPaused);
+        if (pauseMenuGroup != null)
+        {
+            pauseMenuGroup.SetActive(isPaused);
+        }
     }
     #endregion
-    public bool Paused()
-    {
-        return isPaused;
-    }
+
+    public bool Paused => isPaused;
 }

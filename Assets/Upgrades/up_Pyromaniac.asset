@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92f77343a7933f546a9b86c63c50cf07, type: 3}
+  m_Name: up_Pyromaniac
+  m_EditorClassIdentifier: 
+  id: up_Pyromaniac
+  upgradeName: Pyromaniac
+  description: 'Best for barbeque nights and to burn your friends face off.
+
+    Creates
+    an area of fire after being damaged.'
+  icon: {fileID: 0}
+  type: 3
+  isCharacterExclusive: 0
+  allowedCharacterIDs: 
+  blacklistedCharacterIDs: 
+  bonusSpeed: 0
+  speedMultiplier: 1
+  bonusHealth: 0
+  bonusShield: 0
+  desacelerationMultipliyer: 1
+  extraJumps: 0
+  enableWallStick: 0
+  enableWallClimb: 0
+  replaceWallJumpWithClimb: 0
+  componentPrefab: {fileID: 3442438428816625803, guid: f97d46c68b3c594f181d3f2dc73c514d, type: 3}

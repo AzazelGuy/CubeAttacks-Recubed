@@ -23,10 +23,6 @@ public class ReScoutAI : EnemyBase
     [Tooltip("Stronger braking force used when changing direction on the ground.")]
     [SerializeField] float skidDeceleration = 0.4f;
 
-    //[Tooltip("Impulse applied after attacking to push the enemy away from the target.")]
-    //[SerializeField] private float postAttackPushForce = 2f;
-
-    [Tooltip("Time during which deceleration is disabled after an attack.")]
     private int dir = 1; // 1 = right, -1 = left
     private float movingTimer = 0f;
 
@@ -135,7 +131,7 @@ public class ReScoutAI : EnemyBase
     private int shotsFired;
     private float peekTimer;
     private float peekShotTimer;
-    // private float peekDurationTimer; // Unused timer kept for future peek duration logic.
+    private bool hasDirectLineOfSight;
     #endregion
 
     // -------------------------------------------------------------------------
@@ -179,7 +175,6 @@ public class ReScoutAI : EnemyBase
 
         peekTimer = peekInterval;
 
-        // Randomizes extra amount of health (in %) and applies it.
         maxHp *= Random.Range(1f - variationPercentage, 1f + variationPercentage);
         currHp = maxHp;
     }
@@ -211,7 +206,6 @@ public class ReScoutAI : EnemyBase
     {
         Move();
     }
-
     #endregion
 
     #region Physics Callbacks
@@ -219,7 +213,10 @@ public class ReScoutAI : EnemyBase
     {
         if (collision == null) return;
 
-        if (collision.CompareTag("EnemyJump") && currState != State.Stay)
+        // MUDANÇA 1: Impede pulo se estiver em estado de cover/agachado
+        bool isCrouchedOrCovered = currState == State.Hidding || currState == State.Shooting || isCrouched;
+
+        if (collision.CompareTag("EnemyJump") && currState != State.Stay && !isCrouchedOrCovered)
         {
             if (isGrounded && jumpBlockTimer <= 0) Jump();
         }
@@ -246,6 +243,13 @@ public class ReScoutAI : EnemyBase
     /// </summary>
     void DirectionBehavior()
     {
+        // MUDANÇA 2: Retorna imediatamente se estiver no cover
+        if (currState == State.Hidding || currState == State.Shooting)
+        {
+            xInput = 0f;
+            return;
+        }
+
         if (currState == State.LookingForCover)
         {
             if (selectedCover != null)
@@ -258,12 +262,6 @@ public class ReScoutAI : EnemyBase
             return;
         }
 
-        if (currState == State.Hidding || currState == State.Shooting)
-        {
-            xInput = 0f;
-            return;
-        }
-
         if (target != null)
         {
             float distanceToTarget = Mathf.Abs(target.position.x - transform.position.x);
@@ -272,10 +270,11 @@ public class ReScoutAI : EnemyBase
             {
                 xInput = Mathf.Sign(target.position.x - transform.position.x);
                 attackCooldownTimer = 0f;
+                return;
             }
         }
 
-        if (onWall && !previousOnWall && currState != State.Hidding && currState != State.Shooting)
+        if (onWall && !previousOnWall)
         {
             dir *= -1;
             xInput = dir * 0.4f;
@@ -285,17 +284,14 @@ public class ReScoutAI : EnemyBase
 
         if (currState == State.Stay)
         {
-            xInput = 0; // Ensure the enemy remains still while in the Stay state.
+            xInput = 0;
         }
         else
         {
-            xInput = dir * 0.4f; // Use the current wander direction while roaming.
+            xInput = dir * 0.4f;
         }
     }
 
-    /// <summary>
-    /// Updates the current AI state machine and transitions between states.
-    /// </summary>
     void StateUpdater()
     {
         switch (currState)
@@ -392,13 +388,9 @@ public class ReScoutAI : EnemyBase
                     ChangeState(State.Wander);
                 }
                 break;
-
         }
     }
 
-    /// <summary>
-    /// Flips the sprite to face the current movement or target direction.
-    /// </summary>
     void SpriteFlip()
     {
         float lookDirection = 0f;
@@ -422,9 +414,6 @@ public class ReScoutAI : EnemyBase
         }
     }
 
-    /// <summary>
-    /// Executes a jump if the AI is allowed to jump.
-    /// </summary>
     void Jump()
     {
         if (isCrouched || isPeeking) return;
@@ -437,9 +426,6 @@ public class ReScoutAI : EnemyBase
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
     }
 
-    /// <summary>
-    /// Applies horizontal movement forces based on input and current velocity.
-    /// </summary>
     void Move()
     {
         if (waitStartTimer > 0) return;
@@ -450,19 +436,18 @@ public class ReScoutAI : EnemyBase
 
         if (xInput != 0)
         {
-            // Use stronger deceleration when changing direction on the ground.
             if (isGrounded && Mathf.Sign(xInput) != Mathf.Sign(rb.velocity.x) && Mathf.Abs(rb.velocity.x) > 0.5f)
             {
-                forceFactor = skidDeceleration; // Apply strong ground skid braking.
+                forceFactor = skidDeceleration;
             }
             else
             {
-                forceFactor = acceleration; // Normal acceleration while moving.
+                forceFactor = acceleration;
             }
         }
         else
         {
-            forceFactor = deceleration; // Passive slowdown when no input is present.
+            forceFactor = deceleration;
         }
 
         rb.AddForce(Vector2.right * speedDiff * forceFactor, ForceMode2D.Force);
@@ -487,6 +472,7 @@ public class ReScoutAI : EnemyBase
     #endregion
 
     #region Detection
+    // MUDANÇA 3: Detecção com permanência de objeto
     void DetectPlayer()
     {
         Collider2D player = Physics2D.OverlapCircle(
@@ -495,9 +481,12 @@ public class ReScoutAI : EnemyBase
             playerLayers
         );
 
-        bool playerDetected = false;
         if (player != null)
         {
+            target = player.transform.root;
+            targetLostTimer = 0f;
+
+            // Checa linha de visão limpa
             Vector2 direction = (player.transform.position - PlayerDetectionOrigin.position).normalized;
             float distance = Vector2.Distance(PlayerDetectionOrigin.position, player.transform.position);
 
@@ -508,20 +497,16 @@ public class ReScoutAI : EnemyBase
                 obstacleLayers
             );
 
-            if (wall.collider == null)
+            hasDirectLineOfSight = (wall.collider == null);
+
+            if (currState == State.Wander || currState == State.Stay)
             {
-                target = player.transform.root;
-                targetLostTimer = 0f;
-                playerDetected = true;
-                if (currState != State.Hidding && currState != State.Shooting)
-                {
-                    ChangeState(State.LookingForCover);
-                }
+                ChangeState(State.LookingForCover);
             }
         }
-
-        if (target != null && !playerDetected)
+        else if (target != null)
         {
+            hasDirectLineOfSight = false;
             targetLostTimer += Time.deltaTime;
             if (targetLostTimer >= targetLoseTime)
             {
@@ -554,6 +539,7 @@ public class ReScoutAI : EnemyBase
         target = null;
         targetLostTimer = 0f;
         selectedCover = null;
+        hasDirectLineOfSight = false;
         if (currState != State.Wander)
         {
             ChangeState(State.Wander);
@@ -642,20 +628,25 @@ public class ReScoutAI : EnemyBase
         animator.SetTrigger("Peek");
     }
 
+    // MUDANÇA 4: Trava de segurança para disparo sem varar mureta
     private void ShootAtTarget()
     {
         if (weapon == null || weapon.bulletPrefab == null || target == null) return;
 
-        Vector2 direction = ((target.position + Offset) - (shootPoint != null ? shootPoint.position : PlayerDetectionOrigin.position)).normalized;
+        Transform spawnPoint = shootPoint != null ? shootPoint : PlayerDetectionOrigin;
+        if (spawnPoint == null) return;
 
-        if (enemyWeapon != null && weapon != null)
+        // Trava para evitar tiros de dentro da parece
+        Collider2D insideWall = Physics2D.OverlapCircle(spawnPoint.position, 0.05f, obstacleLayers);
+        if (insideWall != null) return;
+
+        Vector2 direction = ((target.position + Offset) - spawnPoint.position).normalized;
+
+        if (enemyWeapon != null)
         {
             enemyWeapon.Shoot(weapon, direction);
             return;
         }
-
-        Transform spawnPoint = shootPoint != null ? shootPoint : PlayerDetectionOrigin;
-        if (spawnPoint == null) return;
 
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         GameObject bullet = Instantiate(weapon.bulletPrefab, spawnPoint.position, Quaternion.Euler(0f, 0f, angle));
@@ -664,6 +655,8 @@ public class ReScoutAI : EnemyBase
         if (projectile != null)
         {
             projectile.Initialize(direction, weapon.bulletDamage);
+            projectile.SetEnemy(gameObject);
+            Debug.Log(projectile.GetEnemy);
         }
     }
     #endregion
@@ -677,7 +670,6 @@ public class ReScoutAI : EnemyBase
         attackCooldownTimer = 0f;
         UpdateAnimationState();
 
-        // Reseta o timer específico do estado que está entrando.
         switch (newState)
         {
             case State.Wander:

@@ -1,4 +1,3 @@
-using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -26,27 +25,38 @@ public class ShowIfDrawer : PropertyDrawer
     private bool ShouldShow(SerializedProperty property)
     {
         ShowIfAttribute showIf = (ShowIfAttribute)attribute;
+        
+        // Find the conditional property relative to this field
+        SerializedProperty conditionProperty = property.serializedObject.FindProperty(showIf.ConditionName);
 
-        object target = property.serializedObject.targetObject;
-
-        FieldInfo field = target.GetType().GetField(
-            showIf.ConditionName,
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-        if (field == null)
+        if (conditionProperty == null)
         {
-            Debug.LogWarning($"ShowIf: Campo '{showIf.ConditionName}' não encontrado.");
+            Debug.LogWarning($"ShowIf: Field '{showIf.ConditionName}' not found on {property.serializedObject.targetObject.name}.");
             return true;
         }
 
-        if (field.FieldType != typeof(bool))
+        switch (conditionProperty.propertyType)
         {
-            Debug.LogWarning($"ShowIf: '{showIf.ConditionName}' precisa ser um bool.");
-            return true;
+            case SerializedPropertyType.Boolean:
+                return conditionProperty.boolValue.Equals(showIf.ExpectedValue);
+
+            case SerializedPropertyType.Enum:
+                // Check if the enum value matches by integer value or string representation
+                if (showIf.ExpectedValue is int intVal)
+                {
+                    return conditionProperty.enumValueIndex == intVal;
+                }
+                
+                if (showIf.ExpectedValue != null)
+                {
+                    string enumName = conditionProperty.enumNames[conditionProperty.enumValueIndex];
+                    return enumName.Equals(showIf.ExpectedValue.ToString());
+                }
+                return false;
+
+            default:
+                Debug.LogWarning($"ShowIf: Unsupported property type '{conditionProperty.propertyType}'.");
+                return true;
         }
-
-        bool value = (bool)field.GetValue(target);
-
-        return value == showIf.ExpectedValue;
     }
 }

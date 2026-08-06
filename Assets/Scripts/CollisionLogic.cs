@@ -14,15 +14,7 @@ public class CollisionLogic : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision != null)
-        {
-            if (collision.CompareTag("PickUp") && weaponController != null)
-            {
-                weaponController.RecarregarArmas();
-                Destroy(collision.gameObject);
-            }
-
-        }
+        
     }
 
     void OnTriggerStay2D(Collider2D collision)
@@ -53,7 +45,7 @@ public class CollisionLogic : MonoBehaviour
             {
                 invenciTimer = invenciTime;
                 PlayerCharacterBase player = GetComponentInParent<PlayerCharacterBase>();
-
+                inimigo = bullet.GetEnemy.GetComponentInParent<EnemyBase>();
                 inimigo.AttackPlayer(player);
                 PlayerInGameDataHolder.Instance.ResetTimer();
 

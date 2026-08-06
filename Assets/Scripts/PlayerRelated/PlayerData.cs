@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "Character Info", menuName = "Entities/Player/New Character")]
@@ -20,7 +18,8 @@ public class PlayerData : ScriptableObject
     {
         shootingBased,
         meleeBased,
-        pyshicalBased
+        pyshicalBased,
+        other
     }
 
     public attackTypePlayer attackType;

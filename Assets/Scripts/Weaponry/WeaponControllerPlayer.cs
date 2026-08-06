@@ -32,10 +32,7 @@ public class WeaponControllerPlayer : MonoBehaviour
 
     //Inventario de armas (maximo 3 em jogo)
     [Header("Armas")]
-    public List<WeaponData> Arsenal;
-    private int lenghtArsenal;
-
-    private int[] bulletAmmount;
+    
     private int currentWeapon;
     private float nextFireTime; // Controla o cooldown entre os tiros
 
@@ -44,44 +41,53 @@ public class WeaponControllerPlayer : MonoBehaviour
     #endregion
 
     private void Start()
+{
+    // GUARD 1: If player doesn't use weapons, shut down this script's visual features
+    if (PlayerInGameDataHolder.Instance != null && !PlayerInGameDataHolder.Instance.playerCurrData.usesWeapon)
     {
-        lenghtArsenal = Arsenal.Count - 1;
-        Debug.Log(lenghtArsenal);
-
-        bulletAmmount = new int[Arsenal.Count];
-        for (int i = 0; i < bulletAmmount.Length; i++)
-        {
-            bulletAmmount[i] = Arsenal[i].BulletsMax;
-        }
-
-        // Come�a com a arma guardada
-        ResetarAlerta(false);
-        UpdateWeaponAppearance();
+        if (gunsprite != null) gunsprite.enabled = false;
+        this.enabled = false; // Disable update loop for melee characters!
+        return;
     }
+
+    // Initialize persistent ammo tracker inside the Singleton Manager
+    if (PlayerInGameDataHolder.Instance != null && PlayerInGameDataHolder.Instance.Arsenal.Count > 0)
+    {
+        PlayerInGameDataHolder.Instance.InitializeAmmo(PlayerInGameDataHolder.Instance.Arsenal);
+    }
+
+    ResetarAlerta(false);
+    UpdateWeaponAppearance();
+}
 
     private void Update()
+{
+    if (PauseMenuActions.instance != null && PauseMenuActions.instance.Paused) return;
+
+    xDir = Input.GetAxisRaw("Horizontal");
+    yDir = Input.GetAxisRaw("Vertical");
+
+    GunRotation(xDir, yDir);
+    handleFire();
+    handleSwap();
+    HandleAlertTimer();
+
+    // UPDATE UI SAFELY
+    if (PlayerInGameDataHolder.Instance.Arsenal.Count > 0 && PlayerInGameDataHolder.Instance != null)
     {
-        if (PauseMenuActions.instance.Paused()) return;
-        xDir = Input.GetAxisRaw("Horizontal");
-        yDir = Input.GetAxisRaw("Vertical");
-
-
-        GunRotation(xDir, yDir);
-        handleFire();
-        handleSwap();
-        HandleAlertTimer(); // L�gica para contar o tempo do coldre
-
-        // Evita erro se o arsenal come�ar vazio por algum motivo
-        if (Arsenal.Count > 0)
-        {
-            UIControllerInGame.Instance.getWeaponInfo(Arsenal[currentWeapon].WeaponName, Arsenal[currentWeapon].BulletsMax, bulletAmmount[currentWeapon]);
-        }
-
-        if (Input.GetKeyDown(KeyCode.Tab))
-        {
-            if (currAim == FireMode._8directional) { currAim = FireMode.mouseAim; } else { currAim = FireMode._8directional; }
-        }
+        int currentAmmo = PlayerInGameDataHolder.Instance.GetAmmo(currentWeapon);
+        UIControllerInGame.Instance.getWeaponInfo(
+            PlayerInGameDataHolder.Instance.Arsenal[currentWeapon].WeaponName, 
+            PlayerInGameDataHolder.Instance.Arsenal[currentWeapon].BulletsMax, 
+            currentAmmo
+        );
     }
+
+    if (Input.GetKeyDown(KeyCode.Tab))
+    {
+        currAim = (currAim == FireMode._8directional) ? FireMode.mouseAim : FireMode._8directional;
+    }
+}
 
     // Gerencia o tempo que a arma fica exposta
     private void HandleAlertTimer()
@@ -183,95 +189,87 @@ public class WeaponControllerPlayer : MonoBehaviour
     }
 
     // Cuidar dos tiros da arma
-    private void handleFire()
+    // UPDATE handleFire() ammo checks to use Singleton:
+private void handleFire()
+{
+    if (PlayerInGameDataHolder.Instance.Arsenal.Count == 0) return;
+
+    WeaponData armaAtual = PlayerInGameDataHolder.Instance.Arsenal[currentWeapon];
+    bool querAtirar = (currAim == FireMode._8directional) 
+        ? (armaAtual.isAutomatic ? Input.GetKey(KeyCode.H) : Input.GetKeyDown(KeyCode.H))
+        : (armaAtual.isAutomatic ? Input.GetKey(KeyCode.Mouse0) : Input.GetKeyDown(KeyCode.Mouse0));
+
+    if (querAtirar) ResetarAlerta(true);
+
+    // Read ammo from Singleton!
+    int ammoAvailable = PlayerInGameDataHolder.Instance.GetAmmo(currentWeapon);
+
+    if (querAtirar && Time.time >= nextFireTime && ammoAvailable > 0)
     {
-        if (Arsenal.Count == 0) return;
+        nextFireTime = Time.time + armaAtual.coolDownTime;
+        Atirar(armaAtual);
+    }
+}
 
-        WeaponData armaAtual = Arsenal[currentWeapon];
-        bool querAtirar = false;
-        if (currAim == FireMode._8directional) { querAtirar = armaAtual.isAutomatic ? Input.GetKey(KeyCode.H) : Input.GetKeyDown(KeyCode.H); }
-        if (currAim == FireMode.mouseAim) { querAtirar = armaAtual.isAutomatic ? Input.GetKey(KeyCode.Mouse0) : Input.GetKeyDown(KeyCode.Mouse0); }
+    // UPDATE Atirar() ammo deductions:
+private void Atirar(WeaponData arma)
+{
+    ResetarAlerta(true);
 
-        // Se o player apertar para atirar, a arma saca imediatamente (mesmo se estiver sem balas ou em cooldown)
-        if (querAtirar)
-        {
-            ResetarAlerta(true);
-        }
-
-        // S� atira se: Apertou o bot�o E o cooldown passou E tem muni��o
-        if (querAtirar && Time.time >= nextFireTime && bulletAmmount[currentWeapon] > 0)
-        {
-            nextFireTime = Time.time + armaAtual.coolDownTime; // Aplica o Cooldown
-            Atirar(armaAtual);
-        }
+    // Recoil Pushback
+    if (playerMovement != null && arma.recoilStrenght > 0)
+    {
+        Vector2 direcaoEmpurrao = -canoDaArma.right;
+        float intensidadeForca = arma.recoilStrenght * 0.3f;
+        playerMovement.AplicarEmpurraoRecuo(direcaoEmpurrao * intensidadeForca, 0.2f);
     }
 
-    private void Atirar(WeaponData arma)
+    // PROJECTILE WEAPONS
+    if (arma.firingMethod == WeaponData.firingType.Projectile)
     {
-        // Garante que o timer vai renovar para 5 segundos ao efetivar o tiro
-        ResetarAlerta(true);
-
-        // --- SISTEMA DE MOVIMENTO POR RECUO ---
-        if (playerMovement != null && arma.recoilStrenght > 0)
+        PlayerInGameDataHolder.Instance.ConsumeAmmo(currentWeapon, 1);
+        if (arma.bulletPrefab != null)
         {
-            // canoDaArma.right � para onde o tiro vai. Negativo (-) joga o jogador para tr�s.
-            Vector2 direcaoEmpurrao = -canoDaArma.right;
-
-            // Se a for�a do Scriptable Object for baseada no �ngulo visual (ex: 5, 10, 15), 
-            // multiplicamos por um fator menor (ex: 0.3f) para n�o isolar o quadrado da tela.
-            float intensidadeForca = arma.recoilStrenght * 0.3f;
-            Vector2 vetorForcaFinal = direcaoEmpurrao * intensidadeForca;
-
-            // Tempo em segundos que o jogador perde o controle do teclado para o recuo agir (0.15s � �timo)
-            float tempoBloqueioTeclado = 0.2f;
-
-            playerMovement.AplicarEmpurraoRecuo(vetorForcaFinal, tempoBloqueioTeclado);
+            Instantiate(arma.bulletPrefab, canoDaArma.position, canoDaArma.rotation);
         }
+        return;
+    }
 
-        if (arma.firingMethod == WeaponData.firingType.Projectile)
-        {
-            bulletAmmount[currentWeapon]--;
-            if (arma.bulletPrefab != null)
+    // RAYCAST WEAPONS
+    float erroAtual = arma.imprecisao;
+    int ammoAvailable = PlayerInGameDataHolder.Instance.GetAmmo(currentWeapon);
+
+    switch (arma.firingMethod)
+    {
+        case WeaponData.firingType.Single:
+            if (ammoAvailable >= 1)
             {
-                Instantiate(arma.bulletPrefab, canoDaArma.position, canoDaArma.rotation);
+                PlayerInGameDataHolder.Instance.ConsumeAmmo(currentWeapon, 1);
+                ExecutarRaycast(AplicarImprecisao(canoDaArma.right, erroAtual), arma.bulletDamage);
             }
-            return;
-        }
+            break;
 
-        float erroAtual = arma.imprecisao;
+        case WeaponData.firingType.Double:
+            if (ammoAvailable >= 2)
+            {
+                PlayerInGameDataHolder.Instance.ConsumeAmmo(currentWeapon, 2);
+                ExecutarRaycast(AplicarImprecisao(canoDaArma.right, erroAtual), arma.bulletDamage);
+                ExecutarRaycast(AplicarImprecisao(canoDaArma.right, erroAtual), arma.bulletDamage);
+            }
+            break;
 
-        switch (arma.firingMethod)
-        {
-            case WeaponData.firingType.Single:
-                if (bulletAmmount[currentWeapon] >= 1)
+        case WeaponData.firingType.Spread:
+            if (ammoAvailable >= 1)
+            {
+                PlayerInGameDataHolder.Instance.ConsumeAmmo(currentWeapon, 1);
+                for (int i = 1; i <= arma.NumOfBullets; i++)
                 {
-                    bulletAmmount[currentWeapon]--;
-                    Vector2 dirComImprecisao = AplicarImprecisao(canoDaArma.right, erroAtual);
-                    ExecutarRaycast(dirComImprecisao, arma.bulletDamage);
+                    ExecutarRaycast(AplicarImprecisao(Quaternion.Euler(0, 0, 0.5f * i) * canoDaArma.right, erroAtual), arma.bulletDamage);
                 }
-                break;
-
-            case WeaponData.firingType.Double:
-                if (bulletAmmount[currentWeapon] >= 2)
-                {
-                    bulletAmmount[currentWeapon] -= 2;
-                    ExecutarRaycast(AplicarImprecisao(canoDaArma.right, erroAtual), arma.bulletDamage);
-                    ExecutarRaycast(AplicarImprecisao(canoDaArma.right, erroAtual), arma.bulletDamage);
-                }
-                break;
-
-            case WeaponData.firingType.Spread:
-                if (bulletAmmount[currentWeapon] >= 1)
-                {
-                    bulletAmmount[currentWeapon]--;
-                    for (int i = 0; i <=8; i++)
-                    {
-                        ExecutarRaycast(AplicarImprecisao(Quaternion.Euler(0, 0, 0.5f * i) * canoDaArma.right, erroAtual), arma.bulletDamage);
-                    }
-                }
-                break;
-        }
+            }
+            break;
     }
+}
 
     private Vector2 AplicarImprecisao(Vector2 direcaoOriginal, float anguloImprecisao)
     {
@@ -323,42 +321,39 @@ public class WeaponControllerPlayer : MonoBehaviour
     }
 
     private void handleSwap()
+{
+    if (PlayerInGameDataHolder.Instance.Arsenal.Count <= 1) return; // Don't swap if holding 1 or 0 weapons
+
+    int previousWeapon = currentWeapon;
+
+    // Cycle Forward (E)
+    if (Input.GetKeyDown(KeyCode.E))
     {
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            if (currentWeapon < lenghtArsenal)
-            {
-                currentWeapon++;
-                UpdateWeaponAppearance();
-                ResetarAlerta(true); // Mostra a arma nova que acabou de puxar
-            }
-        }
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            if (currentWeapon > 0)
-            {
-                currentWeapon--;
-                UpdateWeaponAppearance();
-                ResetarAlerta(true); // Mostra a arma nova que acabou de puxar
-            }
-        }
+        currentWeapon = (currentWeapon + 1) % PlayerInGameDataHolder.Instance.Arsenal.Count;
     }
+    // Cycle Backward (Q)
+    else if (Input.GetKeyDown(KeyCode.Q))
+    {
+        currentWeapon = (currentWeapon - 1 + PlayerInGameDataHolder.Instance.Arsenal.Count) % PlayerInGameDataHolder.Instance.Arsenal.Count;
+    }
+
+    // Only run holster/sprite updates if the weapon actually changed
+    if (currentWeapon != previousWeapon)
+    {
+        UpdateWeaponAppearance();
+        ResetarAlerta(true); // Draw the newly equipped weapon immediately
+    }
+}
 
     private void UpdateWeaponAppearance()
-    {
-        if (Arsenal.Count > 0)
-        {
-            gunsprite.sprite = Arsenal[currentWeapon].WeaponImage;
-        }
-    }
+{
+    if (PlayerInGameDataHolder.Instance.Arsenal.Count == 0 || gunsprite == null) return;
 
-    public void RecarregarArmas()
+    // Safety check bounds
+    if (currentWeapon >= 0 && currentWeapon < PlayerInGameDataHolder.Instance.Arsenal.Count)
     {
-        for (int i = 0; i < bulletAmmount.Length; i++)
-        {
-            bulletAmmount[i] = Arsenal[i].BulletsMax;
-        }
-
-        Debug.Log("Muni��o recarregada!");
+        gunsprite.sprite = PlayerInGameDataHolder.Instance.Arsenal[currentWeapon].WeaponImage;
     }
+}
+
 }

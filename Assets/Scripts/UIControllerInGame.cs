@@ -9,9 +9,10 @@ public class UIControllerInGame : MonoBehaviour
     [SerializeField] private TextMeshProUGUI BulletAmount;
     [SerializeField] private TextMeshProUGUI WeaponName;
     [SerializeField] private Image fillImageHealth;
-    private Material waveMaterialHealth;
     [SerializeField] private Image fillImageShield;
-    private Material waveMaterialShield;
+    
+    [SerializeField] private TextMeshProUGUI TexthealthAmnt;
+    [SerializeField] private TextMeshProUGUI TextshieldAmnt;
     [SerializeField] private Image[] hurtImage;
 
     private string weaponName;
@@ -29,26 +30,15 @@ public class UIControllerInGame : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
-        waveMaterialHealth = fillImageHealth.material;
-
-        waveMaterialShield = fillImageShield.material;
     }
     private void Update()
     {
 
         BulletAmount.text = $"{bulletscurr}/{bulletsMax}";
         WeaponName.text = $"{weaponName}";
-
-        SetFillHealth(PlayerInGameDataHolder.Instance.Health, PlayerInGameDataHolder.Instance.MaxHealth); //Health
-
-        
-
-        SetFillShield(PlayerInGameDataHolder.Instance.Shield, PlayerInGameDataHolder.Instance.MaxShield); //Shield
         
     }
-
-    public void SetFillHealth(float currentAmnt, float maxAmnt)
+    public void SetHealthEffect(float currentAmnt, float maxAmnt)
     {
         float targetFill = currentAmnt / maxAmnt;
 
@@ -59,18 +49,8 @@ public class UIControllerInGame : MonoBehaviour
             itemColor.a = 0.5f - (targetFill * 0.5f);
             item.color = itemColor;
         }
-
-        waveMaterialHealth.SetFloat("_FillAmount", targetFill);
         
-    }
-
-    public void SetFillShield(float currentAmnt, float maxAmnt)
-    {
-        float targetFill = currentAmnt / maxAmnt;
-
-        waveMaterialShield.SetFloat("_FillAmount", targetFill);
-        
-    }
+    }    
     public void getWeaponInfo(string name, int bulletMax, int bulletcurr)
     {
         weaponName = name;
@@ -80,4 +60,7 @@ public class UIControllerInGame : MonoBehaviour
 
     public Image Healthfill => fillImageHealth;
     public Image Shieldfill => fillImageShield;
+
+    public TextMeshProUGUI TextHealth => TexthealthAmnt;
+    public TextMeshProUGUI TextShield => TextshieldAmnt;
 }

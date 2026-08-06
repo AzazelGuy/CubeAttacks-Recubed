@@ -1,4 +1,3 @@
-using UnityEditor.Animations;
 using UnityEngine;
 
 /// <summary>
@@ -8,7 +7,6 @@ using UnityEngine;
 public class PlayerVisualData : ScriptableObject
 {
     public Sprite playerHudIcon;
-    public AnimatorController playerAnimations;
 
     [Range(0,10)] public ParticleSystem[] particles;
 }

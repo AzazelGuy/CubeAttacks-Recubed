@@ -8,6 +8,8 @@ public class EnemyBulletProjectile : MonoBehaviour
     [SerializeField] private float aliveTime = 5f;
     [SerializeField] private float ignoreWallsTimer = 1f;
     private Vector2 moveDirection = Vector2.left;
+    
+    private GameObject EnemyOrigin;
     private bool isInitialized;
 
     private void Update()
@@ -55,4 +57,11 @@ public class EnemyBulletProjectile : MonoBehaviour
     {
         return damage;
     }
+
+    public void SetEnemy(GameObject entity)
+    {
+        EnemyOrigin = entity;
+    }
+
+    public GameObject GetEnemy => EnemyOrigin;
 }

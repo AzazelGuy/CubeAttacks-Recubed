@@ -3,10 +3,6 @@ using UnityEngine;
 
 [AddComponentMenu("Player/Advanced Rigidbody 2D Movement")]
 [RequireComponent(typeof(Rigidbody2D))]
-
-/// Something to note is that this PlayerMovemnt only works for CUBE ATTACKS RECUBED due to the compatibility with the upgrade system included.
-/// If anyone should grab this script please be known to adapt to not cause trouble for you
-/// 
 public class PlayerMovement : MonoBehaviour
 {
     #region Variaveis
@@ -31,9 +27,9 @@ public class PlayerMovement : MonoBehaviour
     // -------------------------------------------------------------------------
     [Header("Ice Settings")]
     [SerializeField] private string iceTag = "Ice";
-    [SerializeField] private float iceAcceleration = 0.03f;      // Lower = harder to gain speed
-    [SerializeField] private float iceDeceleration = 0.015f;     // Lower = longer slide when letting go of inputs
-    [SerializeField] private float iceSkidDeceleration = 0.05f;  // Lower = slides further when changing direction
+    [SerializeField] private float iceAcceleration = 0.03f;
+    [SerializeField] private float iceDeceleration = 0.015f;
+    [SerializeField] private float iceSkidDeceleration = 0.05f;
 
     private bool isOnIce = false;
 
@@ -81,30 +77,39 @@ public class PlayerMovement : MonoBehaviour
     float moveBlockTimer;
 
     bool onWall;
-    int wallDir; // -1 = parede na esquerda, 1 = parede na direita, 0 = nenhuma
+    int wallDir;
 
     // -------------------------------------------------------------------------
-    // ESTADO ESPECIAL
+    // ESTADO ESPECIAL E INTERNO
     // -------------------------------------------------------------------------
     [Header("Outros")]
     [SerializeField] float waitStartTime = 0.5f;
     float waitStartTimer;
 
-    // -------------------------------------------------------------------------
-    // ESTADO INTERNO
-    // -------------------------------------------------------------------------
     [HideInInspector] public bool moving = false;
 
     float xInput;
-    int dir = 1; // 1 = direita, -1 = esquerda
-
+    float yInput;
+    int dir = 1;
 
     // Variáveis para modificadores dinâmicos
     private float speedMultiplier = 1f;
+    private float desacelerationMultipliyer = 1f;
     private float bonusSpeed = 0f;
 
-    // Propriedade calculada da velocidade final
     public float CurrentMaxSpeed => (moveSpeed + bonusSpeed) * speedMultiplier;
+    public float CurrentDessacelerationSpeed => (deceleration) * desacelerationMultipliyer;
+
+    #endregion
+
+    #region UPGRADES DYNAMIC STATE
+
+    [Header("Upgrades Integration State")]
+    private int maxJumps = 1;
+    private int currentJumpsRemaining = 1;
+    private bool wallStickEnabled = false;
+    private bool wallClimbEnabled = false;
+    private bool disableWallJump = false;
 
     #endregion
 
@@ -112,7 +117,6 @@ public class PlayerMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         col = GetComponent<CapsuleCollider2D>();
-
         waitStartTimer = waitStartTime;
     }
 
@@ -122,6 +126,7 @@ public class PlayerMovement : MonoBehaviour
         CheckWall();
 
         xInput = Mathf.Round(Input.GetAxisRaw("Horizontal"));
+        yInput = Mathf.Round(Input.GetAxisRaw("Vertical"));
 
         // Tick de timers
         waitStartTimer -= Time.deltaTime;
@@ -133,10 +138,12 @@ public class PlayerMovement : MonoBehaviour
 
         if (waitStartTimer <= 0f) moving = true;
 
-        // Gravidade com base no estado do pulo
+        // Gravidade e Modificadores de Parede (Stick / Climb / Slide)
         if (isGrounded)
         {
             coyoteTimer = coyoteTimeMax;
+            currentJumpsRemaining = maxJumps; // RESET DAS CARGAS DE PULO AO TOCAR O CHÃO
+
             if (!Input.GetButtonDown("Jump"))
             {
                 rb.gravityScale = 3f;
@@ -144,25 +151,48 @@ public class PlayerMovement : MonoBehaviour
         }
         else
         {
-            bool canWallSlide = xInput != 0 && onWall
-                             && !Input.GetButtonDown("Jump")
-                             && wallJumpBlockTimer <= 0;
+            // Fix: Only enter wall interact mode if falling (rb.velocity.y <= 0) OR if holding UP to Wall Climb
+            bool isMovingUpward = rb.velocity.y > 0.05f;
+            bool wantsToClimb = wallClimbEnabled && yInput > 0;
 
-            if (canWallSlide)
+            bool canWallInteract = xInput != 0 && onWall && !Input.GetButtonDown("Jump")
+                                && wallJumpBlockTimer <= 0 && (!isMovingUpward || wantsToClimb);
+
+            if (canWallInteract)
             {
-                rb.velocity = new Vector2(
-                    rb.velocity.x,
-                    Mathf.Max(rb.velocity.y, -wallSlideSpeed)
-                );
+                // 1. WALL CLIMB UPGRADE (Hold UP)
+                if (wallClimbEnabled && yInput > 0)
+                {
+                    rb.gravityScale = 0f;
+                    rb.velocity = new Vector2(rb.velocity.x, moveSpeed * 0.75f);
+                }
+                // 2. WALL STICK UPGRADE (Pressing into wall while falling)
+                else if (wallStickEnabled && Mathf.Sign(xInput) == wallDir)
+                {
+                    rb.gravityScale = 0f;
+                    rb.velocity = new Vector2(rb.velocity.x, 0f);
+                }
+                // 3. DEFAULT WALL SLIDE (Slide down with gravity)
+                else
+                {
+                    rb.gravityScale = 3f;
+                    rb.velocity = new Vector2(rb.velocity.x, Mathf.Max(rb.velocity.y, -wallSlideSpeed));
+                }
+
+                // Estando na parede, resetamos pulos se o Wall Jump não estiver desativado
+                if (!disableWallJump)
+                {
+                    currentJumpsRemaining = maxJumps;
+                }
             }
             else
             {
+                // Player is jumping UP against the wall or in open air -> Apply normal heavy gravity
                 rb.gravityScale = 15f;
             }
 
             coyoteTimer -= Time.deltaTime;
         }
-
         // Flip do sprite
         if (xInput > 0 && moveBlockTimer <= 0)
         {
@@ -185,91 +215,82 @@ public class PlayerMovement : MonoBehaviour
 
         Move();
 
-        // Pulo (Adicionado verificação do wallJumpBlockTimer)
-        bool canJump = jumpBufferTimer > 0
-            && (
-                coyoteTimer > 0 ||
-                (onWall && xInput != 0 && wallJumpBlockTimer <= 0)
-               )
-            && jumpBlockTimer < 0;
+        // LÓGICA DE PULO ATUALIZADA COM SUPORTE A MULTI-JUMPS E WALL JUMP MODS
+        bool hasJumpBuffer = jumpBufferTimer > 0 && jumpBlockTimer < 0;
+        bool isWallJumpValid = onWall && xInput != 0 && wallJumpBlockTimer <= 0 && !disableWallJump;
+        bool hasAirJumps = currentJumpsRemaining > 0;
 
-        if (canJump)
+        if (hasJumpBuffer && (coyoteTimer > 0 || isWallJumpValid || hasAirJumps))
         {
             jumpBufferTimer = 0f;
             jumpBlockTimer = jumpBlockTime;
             coyoteTimer = 0f;
-            Jump();
+
+            Jump(isWallJumpValid && !isGrounded);
         }
     }
 
     #region Funcoes Diversas
 
     void Move()
-{
-    if (moveBlockTimer > 0) return;
-
-    // Usando a velocidade final com os upgrades aplicados
-    float targetSpeed = CurrentMaxSpeed;
-    float targetVelocity = xInput * targetSpeed;
-    float speedDiff = targetVelocity - rb.velocity.x;
-
-    float currentAccel = isOnIce ? iceAcceleration : acceleration;
-    float currentDecel = isOnIce ? iceDeceleration : deceleration;
-    float currentSkid = isOnIce ? iceSkidDeceleration : skidDeceleration;
-
-    float forceFactor;
-
-    if (xInput != 0)
     {
-        if (isGrounded && Mathf.Sign(xInput) != Mathf.Sign(rb.velocity.x) && Mathf.Abs(rb.velocity.x) > 0.5f)
+        if (moveBlockTimer > 0) return;
+
+        float targetSpeed = CurrentMaxSpeed;
+        float targetVelocity = xInput * targetSpeed;
+        float speedDiff = targetVelocity - rb.velocity.x;
+
+        float currentAccel = isOnIce ? iceAcceleration : acceleration;
+        float currentDecel = isOnIce ? iceDeceleration : CurrentDessacelerationSpeed;
+        float currentSkid = isOnIce ? iceSkidDeceleration : skidDeceleration;
+
+        float forceFactor;
+
+        if (xInput != 0)
         {
-            forceFactor = currentSkid;
+            if (isGrounded && Mathf.Sign(xInput) != Mathf.Sign(rb.velocity.x) && Mathf.Abs(rb.velocity.x) > 0.5f)
+            {
+                forceFactor = currentSkid;
+            }
+            else
+            {
+                forceFactor = currentAccel;
+            }
         }
         else
         {
-            forceFactor = currentAccel;
+            forceFactor = currentDecel;
+        }
+
+        rb.AddForce(Vector2.right * speedDiff * forceFactor, ForceMode2D.Force);
+
+        if (xInput != 0)
+        {
+            float maxAllowedSpeed = Mathf.Max(targetSpeed, Mathf.Abs(rb.velocity.x));
+
+            rb.velocity = new Vector2(
+                Mathf.Clamp(rb.velocity.x, -maxAllowedSpeed, maxAllowedSpeed),
+                rb.velocity.y
+            );
         }
     }
-    else
-    {
-        forceFactor = currentDecel;
-    }
 
-    rb.AddForce(Vector2.right * speedDiff * forceFactor, ForceMode2D.Force);
-
-    if (xInput != 0)
-    {
-        // Agora o limite máximo respeita tanto os Upgrades quanto impulsos de força externos
-        float maxAllowedSpeed = Mathf.Max(targetSpeed, Mathf.Abs(rb.velocity.x));
-
-        rb.velocity = new Vector2(
-            Mathf.Clamp(rb.velocity.x, -maxAllowedSpeed, maxAllowedSpeed),
-            rb.velocity.y
-        );
-    }
-}
-
-    void Jump()
+    void Jump(bool isWallJump = false)
     {
         groundDisableTimer = groundDisableTime;
         coyoteTimer = -10f;
-
         rb.gravityScale = 10f;
 
         OnJump?.Invoke();
 
-        // --- Wall Jump Fix ---
-        if (onWall && xInput != 0 && !isGrounded)
+        // EXECUTA WALL JUMP SE APLICÁVEL
+        if (isWallJump)
         {
-            Debug.Log($"WallJump! Wall direction was : {wallDir}");
-
-            // Reseta a velocidade X e Y totalmente para garantir impulso limpo
             rb.velocity = Vector2.zero;
 
             moveBlockTimer = moveBlockTime;
             wallJumpBlockTimer = wallJumpBlockTime;
 
-            // Define direção oposta à parede detectada
             int jumpXDir = -wallDir;
 
             rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
@@ -280,8 +301,8 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        Debug.Log("Jump!");
-        // --- Pulo Normal ---
+        // PULO NORMAL OU PULO NO AR (MULTI-JUMP)
+        currentJumpsRemaining--; // Consome uma carga de pulo
         rb.velocity = new Vector2(rb.velocity.x, 0f);
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
     }
@@ -304,7 +325,6 @@ public class PlayerMovement : MonoBehaviour
 
         isGrounded = hit;
 
-        // Check if the surface we hit has the Ice tag
         if (isGrounded && hit.collider != null)
         {
             isOnIce = hit.collider.CompareTag(iceTag);
@@ -370,6 +390,31 @@ public class PlayerMovement : MonoBehaviour
             Gizmos.DrawRay(wallCheck.position, Vector2.right * wallDistance);
             Gizmos.DrawRay(wallCheck.position, Vector2.left * wallDistance);
         }
+    }
+
+    #endregion
+
+    #region UPGRADE API (Called on Stage Load)
+
+    public void ApplySpeedUpgrade(float speedAdd, float speedMult, float desacelerationMult)
+    {
+        bonusSpeed += speedAdd;
+        speedMultiplier *= speedMult;
+        desacelerationMultipliyer *= desacelerationMult;
+    }
+
+    public void AddExtraJumps(int amount)
+    {
+        maxJumps += amount;
+        currentJumpsRemaining = maxJumps;
+    }
+
+    public void EnableWallStick() => wallStickEnabled = true;
+
+    public void EnableWallClimb(bool replacesJump)
+    {
+        wallClimbEnabled = true;
+        disableWallJump = replacesJump;
     }
 
     #endregion

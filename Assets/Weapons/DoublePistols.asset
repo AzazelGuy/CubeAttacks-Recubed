@@ -17,11 +17,11 @@ MonoBehaviour:
   WeaponIndex: 3
   BulletsMax: 40
   coolDownTime: 0
-  recoilStrenght: 30.7
+  recoilStrenght: 4
   imprecisao: 0.6
   firingMethod: 2
   bulletPrefab: {fileID: 0}
   bulletDamage: 5
   bulletImage: {fileID: 0}
-  bulletEffect: 0
+  NumOfBullets: 0
   isAutomatic: 0

@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "NewWeaponData", menuName = "Entities/Weapons/Weapon Data")]
@@ -7,13 +5,13 @@ public class WeaponData : ScriptableObject
 {
     [Header("Dados das armas")]
     public string WeaponName;
-    public Sprite WeaponImage;
+    public Sprite WeaponImage; // THIS IS THE WEAPONS SPRITE (which in the future will bbe cahnged for the animator BUT YOU GET THE POINT)
     public int WeaponIndex;
     public int BulletsMax;
     public float coolDownTime = 0.06f;
     [Range(0f, 100f)] public float recoilStrenght = 0f;
-    [Header("Configurações de Precisão")]
-    [Range(0f, 20f)] public float imprecisao = 0.5f; // O quão "torta" a bala pode sair
+    [Header("Configuraï¿½ï¿½es de Precisï¿½o")]
+    [Range(0f, 20f)] public float imprecisao = 0.5f; // O quï¿½o "torta" a bala pode sair
     public enum firingType
     {
         Spread,
@@ -29,6 +27,8 @@ public class WeaponData : ScriptableObject
     public float bulletDamage;
     public Sprite bulletImage;
 
+    [ShowIf(nameof(firingMethod), firingType.Spread)][Range(1, 20)] public int NumOfBullets;
+
     public enum Effect
     {
         None,
@@ -37,8 +37,6 @@ public class WeaponData : ScriptableObject
         Piercing,
         AutoAim
     }
-
-    public Effect bulletEffect;
 
     public bool isAutomatic;
 }

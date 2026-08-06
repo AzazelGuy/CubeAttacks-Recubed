@@ -11,6 +11,9 @@ TagManager:
   - PlayerHurtbox
   - Cover
   - Ice
+  - MiniMapOnly
+  - ObstacleAgainstEnemy
+  - PlayerInteract
   layers:
   - Default
   - TransparentFX
@@ -24,8 +27,8 @@ TagManager:
   - NPCs
   - Unrender
   - EnemyAreaLimiter
-  - 
-  - 
+  - MiniMapOnly
+  - DamageArea
   - 
   - 
   - 
@@ -71,4 +74,7 @@ TagManager:
     locked: 0
   - name: UI
     uniqueID: 69341353
+    locked: 0
+  - name: MiniMapOnly
+    uniqueID: 3969132531
     locked: 0
