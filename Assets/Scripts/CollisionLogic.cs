@@ -45,8 +45,9 @@ public class CollisionLogic : MonoBehaviour
             {
                 invenciTimer = invenciTime;
                 PlayerCharacterBase player = GetComponentInParent<PlayerCharacterBase>();
-                inimigo = bullet.GetEnemy.GetComponentInParent<EnemyBase>();
-                inimigo.AttackPlayer(player);
+                player.OnPlayerHit(bullet.GetDamage);
+
+                
                 PlayerInGameDataHolder.Instance.ResetTimer();
 
                 PlayerMovement playerMove = GetComponentInParent<PlayerMovement>();

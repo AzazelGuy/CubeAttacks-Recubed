@@ -58,7 +58,7 @@ public class FuzzEnemy : EnemyBase
 
     }
 
-    protected void Update()
+    protected override void Update()
     {
         CheckActivation();
         

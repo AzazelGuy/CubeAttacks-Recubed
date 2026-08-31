@@ -179,8 +179,10 @@ public class ReScoutAI : EnemyBase
         currHp = maxHp;
     }
 
-    protected void Update()
+    protected override void Update()
     {
+        base.Update();
+
         CheckActivation();
         if (!isActive)
             return;
@@ -633,12 +635,26 @@ public class ReScoutAI : EnemyBase
     {
         if (weapon == null || weapon.bulletPrefab == null || target == null) return;
 
+        // Dentro do ciclo de atualização/ataque da IA em ReScoutAI.cs
+        if (target != null)
+        {
+            // Descobre se o jogador está à esquerda ou à direita
+            float directionToPlayer = target.position.x - transform.position.x;
+
+            if (directionToPlayer > 0)
+            {
+                dir = 1;
+                spriteTransform.localScale = new Vector3(1f, spriteTransform.localScale.y, 1f);
+            }
+            else if (directionToPlayer < 0)
+            {
+                dir = -1;
+                spriteTransform.localScale = new Vector3(-1f, spriteTransform.localScale.y, 1f);
+            }
+        }
+
         Transform spawnPoint = shootPoint != null ? shootPoint : PlayerDetectionOrigin;
         if (spawnPoint == null) return;
-
-        // Trava para evitar tiros de dentro da parece
-        Collider2D insideWall = Physics2D.OverlapCircle(spawnPoint.position, 0.05f, obstacleLayers);
-        if (insideWall != null) return;
 
         Vector2 direction = ((target.position + Offset) - spawnPoint.position).normalized;
 

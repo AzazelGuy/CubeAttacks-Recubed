@@ -53,14 +53,13 @@ public class EnemyBulletProjectile : MonoBehaviour
         return damage;
     }
 
-    public float GetDamage()
-    {
-        return damage;
-    }
+    public float GetDamage => damage;
 
     public void SetEnemy(GameObject entity)
     {
         EnemyOrigin = entity;
+        damage = entity.GetComponent<EnemyBase>().GetWeaponDamage;
+        damage *= Random.Range(1.25f,3f);
     }
 
     public GameObject GetEnemy => EnemyOrigin;

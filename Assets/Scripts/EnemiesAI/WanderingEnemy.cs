@@ -138,8 +138,9 @@ public class WanderingEnemy : EnemyBase
         }
     }
 
-    protected void Update()
+    protected override void Update()
     {
+        base.Update();
         CheckActivation();
 
         CheckGround();

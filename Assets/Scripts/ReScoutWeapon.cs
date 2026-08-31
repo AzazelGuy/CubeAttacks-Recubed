@@ -20,12 +20,22 @@ public class ReScoutWeapon : MonoBehaviour
     {
         if (gunPivot == null || direction.sqrMagnitude < 0.0001f) return;
 
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        gunPivot.rotation = Quaternion.Euler(0f, 0f, angle);
+        // Se o pai do Pivot estiver com a escala X negativa (virado para a esquerda),
+        // precisamos inverter a direção horizontal no cálculo do ângulo para anular a inversão da escala.
+        bool parentIsFlipped = gunPivot.lossyScale.x < 0;
+        Vector2 adjustedDirection = direction;
 
-        Vector3 scale = gunPivot.localScale;
-        scale.y = (direction.x < 0f) ? -1f : 1f;
-        gunPivot.localScale = scale;
+        if (parentIsFlipped)
+        {
+            adjustedDirection.x = -adjustedDirection.x;
+            adjustedDirection.y = -adjustedDirection.y; // Mantém a proporção ao inverter
+        }
+
+        float angle = Mathf.Atan2(adjustedDirection.y, adjustedDirection.x) * Mathf.Rad2Deg;
+        gunPivot.localRotation = Quaternion.Euler(0f, 0f, angle);
+
+        // Mantém a escala local da arma limpa sem multiplicar eixos negativos
+        gunPivot.localScale = Vector3.one;
     }
     public void Shoot(WeaponData arma, Vector2 direction, int shotCount = 1)
     {
@@ -35,7 +45,7 @@ public class ReScoutWeapon : MonoBehaviour
 
         for (int i = 0; i < shotCount; i++)
         {
-            Vector2 shotDirection = AplicarImprecisao(direction, arma.imprecisao + 25f);
+            Vector2 shotDirection = AplicarImprecisao(direction, arma.imprecisao + 10f);
             float angle = Mathf.Atan2(shotDirection.y, shotDirection.x) * Mathf.Rad2Deg;
             GameObject bullet = Instantiate(arma.bulletPrefab, canoDaArma.position, Quaternion.Euler(0f, 0f, angle));
 

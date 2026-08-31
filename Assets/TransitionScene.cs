@@ -6,8 +6,8 @@ public enum TransitionState
 {
     Stoped,
     Entering,   // Executando animação de entrada (ex: escurecendo)
-    Loading, // Processando a cena/posição em segundo plano
-    Exiting      // Executando animação de saída (ex: clareando)
+    Loading,    // Processando a cena/posição em segundo plano
+    Exiting     // Executando animação de saída (ex: clareando)
 }
 
 public enum TypeOfTransition
@@ -16,6 +16,7 @@ public enum TypeOfTransition
     TeleportInScene,
     ChangeSceneAndTP
 }
+
 public class TransitionScene : MonoBehaviour
 {
     public static TransitionScene Instance;
@@ -23,16 +24,16 @@ public class TransitionScene : MonoBehaviour
     [Header("UI")]
     [SerializeField] private Animator animator;
 
-    [Header("Config")]
-
     [Header("Configurações de Segurança")]
     [Tooltip("Tempo máximo de espera da animação caso o Animator falhe ou não tenha Animation Event.")]
     [SerializeField] private float animationTimeLimit = 1.5f;
 
     public TransitionState CurrState { get; private set; } = TransitionState.Stoped;
     private TypeOfTransition type = TypeOfTransition.ChangeScene;
-    // Controla se o evento da animação realmente respondeu
-    private bool hasAnimationStarted = false;
+
+    // Controla se a animação finalizou
+    private bool isEnterAnimationFinished = false;
+    private bool isExitAnimationFinished = false;
 
     private void Awake()
     {
@@ -49,15 +50,23 @@ public class TransitionScene : MonoBehaviour
 
     public void LoadSceneWithTransition(string sceneName)
     {
-        
+        // Se a transição já estiver acontecendo (Entering, Loading ou Exiting), ignora chamadas duplicadas
+        if (CurrState != TransitionState.Stoped)
+        {
+            Debug.LogWarning("[TransitionScene] Transição já em andamento. Chamada duplicada ignorada.");
+            return;
+        }
+
         StartCoroutine(TransitionCoroutine(sceneName));
     }
 
     private IEnumerator TransitionCoroutine(string sceneName)
     {
-        
+        // Reseta as flags para a nova transição
+        isEnterAnimationFinished = false;
+        isExitAnimationFinished = false;
+
         CurrState = TransitionState.Entering;
-        hasAnimationStarted = false;
 
         // --- 1. SEGURANÇA: Verificar se o Animator existe e está ativo ---
         bool animatorExists = animator != null && animator.isActiveAndEnabled && animator.runtimeAnimatorController != null;
@@ -67,17 +76,17 @@ public class TransitionScene : MonoBehaviour
             // Tenta disparar a animação de entrada
             animator.SetTrigger("Enter");
 
-            // Aguarda o Animation Event disparar OU estoura o tempo limite de segurança
+            // Aguarda o Animation Event disparar OU estourar o tempo limite de segurança
             float runTime = 0f;
-            while (!hasAnimationStarted && runTime < animationTimeLimit)
+            while (!isEnterAnimationFinished && runTime < animationTimeLimit)
             {
                 runTime += Time.deltaTime;
                 yield return null; // Pausa até o próximo frame
             }
 
-            if (!hasAnimationStarted)
+            if (!isEnterAnimationFinished)
             {
-                Debug.LogWarning("[TransitionManager] O Animation Event não foi chamado a tempo! Pulando animação por segurança.");
+                Debug.LogWarning("[TransitionManager] O Animation Event de ENTER não foi chamado a tempo! Pulando animação por segurança.");
             }
         }
         else
@@ -89,7 +98,7 @@ public class TransitionScene : MonoBehaviour
         CurrState = TransitionState.Loading;
 
         AsyncOperation op = SceneManager.LoadSceneAsync(sceneName);
-        
+
         // Pausa e espera até que a cena seja 100% carregada
         yield return new WaitUntil(() => op.isDone);
 
@@ -98,18 +107,49 @@ public class TransitionScene : MonoBehaviour
             PlayerInGameDataHolder.Instance.Teleport();
             setTransition(TypeOfTransition.ChangeScene);
         }
+
+        // --- 3. ANIMAÇÃO DE SAÍDA (EXIT) ---
         if (animatorExists)
         {
+            CurrState = TransitionState.Exiting;
             animator.SetTrigger("Exit");
-            // Espera o tempo da animação de saída sem travar o código
-            yield return new WaitForSeconds(animationTimeLimit);
+
+            float runTime = 0f;
+            while (!isExitAnimationFinished && runTime < animationTimeLimit)
+            {
+                runTime += Time.deltaTime;
+                yield return null;
+            }
         }
 
         // Finaliza o processo com segurança total
         CurrState = TransitionState.Stoped;
     }
 
+    // ========================================================================
+    // MÉTODOS CHAMADOS PELOS ANIMATION EVENTS NO UNITY
+    // ========================================================================
+
+    /// <summary>
+    /// Coloque este método no Animation Event no ÚLTIMO frame da animação de ENTER.
+    /// </summary>
+    public void OnEnterAnimationComplete()
+    {
+        isEnterAnimationFinished = true;
+    }
+
+    /// <summary>
+    /// Coloque este método no Animation Event no ÚLTIMO frame da animação de EXIT.
+    /// </summary>
+    public void OnExitAnimationComplete()
+    {
+        isExitAnimationFinished = true;
+    }
+
+    // ========================================================================
+
     public TransitionState state => CurrState;
+
     public void setTransition(TypeOfTransition type)
     {
         this.type = type;

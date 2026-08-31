@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -34,7 +35,7 @@ public class PlayerInGameDataHolder : MonoBehaviour
     private float displayedHealthRatio = 1.0f;
     private float displayedShieldRatio = 1.0f;
 
-    //PlayerInstance
+    // PlayerInstance
     private GameObject PlayerIndex = null;
 
     [Header("Health Regen")]
@@ -69,10 +70,11 @@ public class PlayerInGameDataHolder : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(Instance);
+            DontDestroyOnLoad(gameObject);
 
-            playerHealthMax = playerData.playerHealthMax;
-            playerShieldMax = playerData.playerShieldMax;
+            playerHealthMax = playerData != null ? playerData.playerHealthMax : 100f;
+            playerShieldMax = playerData != null ? playerData.playerShieldMax : 100f;
+
             // --- DEBUG OVERRIDE CHECK ---
             if (enableDebugUpgrades)
             {
@@ -85,24 +87,8 @@ public class PlayerInGameDataHolder : MonoBehaviour
                 LoadStageLoadout(GameManager.Instance.currentSaveData);
             }
 
-            // Spawn player
-            var player = Instantiate(playerData.Prefab, originPlayer.position, Quaternion.identity);
-            // Apply loaded upgrades
-            ApplyEquippedUpgrades(player);
-            PlayerIndex = player;
-            OnPlayerSpawned?.Invoke(player.transform);
-            string id = nextSpawnID;
-            if (string.IsNullOrEmpty(id)) return;
-
-            SpawnPoint[] spawns = FindObjectsByType<SpawnPoint>(FindObjectsSortMode.None);
-            foreach (var sp in spawns)
-            {
-                if (sp.spawnID == id)
-                {
-                    player.transform.position = sp.transform.position;
-                    break;
-                }
-            }
+            // Instancia o player na inicialização
+            EnsurePlayerInstance();
         }
         else
         {
@@ -113,18 +99,10 @@ public class PlayerInGameDataHolder : MonoBehaviour
 
     private void Start()
     {
-        // Fetch UI elements dynamically if available
-        if (UIControllerInGame.Instance != null)
-        {
-            healthFillImage = UIControllerInGame.Instance.Healthfill;
-            shieldFillImage = UIControllerInGame.Instance.Shieldfill;
-            healthAmntText = UIControllerInGame.Instance.TextHealth;
-            shieldAmntText = UIControllerInGame.Instance.TextShield;
-        }
+        BindUIReferences();
 
         if (playerData != null)
         {
-
             SetUpVariables(playerHealthMax, playerShieldMax);
             displayedHealthRatio = playerHealthCurr / playerHealthMax;
             displayedShieldRatio = playerShieldCurr / playerShieldMax;
@@ -170,27 +148,73 @@ public class PlayerInGameDataHolder : MonoBehaviour
             UIControllerInGame.Instance.SetHealthEffect(playerHealthCurr, playerHealthMax);
         }
     }
+
+    #endregion
+
+    #region Player Lifecycle & Spawning
+
+    /// <summary>
+    /// Garante que exista um Player válido associado ao DataHolder.
+    /// Se o antigo foi destruído pela troca de cena, ele recria ou re-atribui.
+    /// </summary>
+    public GameObject EnsurePlayerInstance()
+    {
+        // Se a referência já existe e o objeto não foi destruído no Unity
+        if (PlayerIndex != null) return PlayerIndex;
+
+        // Se o objeto foi destruído (mudança de cena), recria o Prefab
+        if (playerData != null && playerData.Prefab != null)
+        {
+            Vector3 spawnPos = originPlayer != null ? originPlayer.position : Vector3.zero;
+            PlayerIndex = Instantiate(playerData.Prefab, spawnPos, Quaternion.identity);
+
+            // Torna o próprio player persistente para não ser destruído em trocas de cena futuras
+            DontDestroyOnLoad(PlayerIndex);
+
+            ApplyEquippedUpgrades(PlayerIndex);
+            OnPlayerSpawned?.Invoke(PlayerIndex.transform);
+        }
+
+        return PlayerIndex;
+    }
+
     #endregion
 
     #region PlayerTPing
+
     public void Teleport()
     {
         string id = nextSpawnID;
-            if (string.IsNullOrEmpty(id)) return;
+        if (string.IsNullOrEmpty(id)) return;
 
-            SpawnPoint[] spawns = FindObjectsByType<SpawnPoint>(FindObjectsSortMode.None);
-            foreach (var sp in spawns)
+        // Garante que o Player existe antes de movimentar
+        GameObject player = EnsurePlayerInstance();
+        if (player == null)
+        {
+            Debug.LogError("[PlayerInGameDataHolder] Não foi possível instanciar/encontrar o Player para o Teleport.");
+            return;
+        }
+
+        SpawnPoint[] spawns = FindObjectsByType<SpawnPoint>(FindObjectsSortMode.None);
+        bool foundSpawn = false;
+
+        foreach (var sp in spawns)
+        {
+            if (sp.spawnID == id)
             {
-                if (sp.spawnID == id)
-                {
-                    PlayerIndex.transform.position = sp.transform.position;
-                    Debug.Log("Teleported!");
-                    break;
-                    
-                }
+                player.transform.position = sp.transform.position;
+                Debug.Log($"[PlayerInGameDataHolder] Player teletransportado para o SpawnID: {id}");
+                foundSpawn = true;
+                break;
             }
-        return;
+        }
+
+        if (!foundSpawn)
+        {
+            Debug.LogWarning($"[PlayerInGameDataHolder] Nenhum SpawnPoint encontrado com o ID: {id}");
+        }
     }
+
     #endregion
 
     #region Upgrade Processing
@@ -201,7 +225,6 @@ public class PlayerInGameDataHolder : MonoBehaviour
 
         activeStageUpgrades.Clear();
 
-        // Convert saved string IDs into actual UpgradeSystemDataSO assets
         foreach (string id in saveData.equippedUpgradeIDs)
         {
             UpgradeSystemDataSO upgrade = upgradeDatabase.GetUpgradeByID(id);
@@ -249,7 +272,6 @@ public class PlayerInGameDataHolder : MonoBehaviour
                     break;
 
                 case UpgradeSystemDataSO.UpgradeType.DamageReaction:
-                    // Checked dynamically inside PlayerCharacterBase.OnPlayerHit()
                     break;
             }
         }
@@ -286,6 +308,10 @@ public class PlayerInGameDataHolder : MonoBehaviour
 
     public void DestroyMe()
     {
+        if (PlayerIndex != null)
+        {
+            Destroy(PlayerIndex);
+        }
         Instance = null;
         Destroy(gameObject);
     }
@@ -315,6 +341,17 @@ public class PlayerInGameDataHolder : MonoBehaviour
     #endregion
 
     #region UI Management
+
+    private void BindUIReferences()
+    {
+        if (UIControllerInGame.Instance != null)
+        {
+            healthFillImage = UIControllerInGame.Instance.Healthfill;
+            shieldFillImage = UIControllerInGame.Instance.Shieldfill;
+            healthAmntText = UIControllerInGame.Instance.TextHealth;
+            shieldAmntText = UIControllerInGame.Instance.TextShield;
+        }
+    }
 
     private void SmoothUpdateUI()
     {
@@ -410,7 +447,7 @@ public class PlayerInGameDataHolder : MonoBehaviour
     public float MaxHealth => playerData != null ? playerHealthMax : 100f;
     public float Shield => playerShieldCurr;
     public float MaxShield => playerData != null ? playerShieldMax : 100f;
-    public GameObject currentPlayer => PlayerIndex;
+    public GameObject currentPlayer => EnsurePlayerInstance();
     public PlayerData playerCurrData => playerData;
     public UpgradeSystemDataBaseSO GetUpgradeDataBase => upgradeDatabase;
 

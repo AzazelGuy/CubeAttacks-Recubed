@@ -6,57 +6,62 @@ public class Door : MonoBehaviour
     public string targetScene;
     public string targetSpawnID;
     private bool playerInside;
+    private bool isProcessing = false; // Trava contra duplo disparo
 
-    [SerializeField]TypeOfTransition typeOfTransition;
-    void Update()
+    [SerializeField] private TypeOfTransition typeOfTransition;
+
+    private void Update()
     {
-        if (!playerInside) return;
+        if (!playerInside || isProcessing) return;
 
-        //  Checa null ANTES de acessar .active
         if (TransitionScene.Instance != null)
         {
-            if (TransitionScene.Instance.state != TransitionState.Stoped) return; // já tem transição rolando
+            // Se já tem transição rodando, não faz nada
+            if (TransitionScene.Instance.state != TransitionState.Stoped) return;
 
-            switch(typeOfTransition)
+            isProcessing = true; // Ativa a trava
+
+            switch (typeOfTransition)
             {
                 case TypeOfTransition.ChangeScene:
-                TransitionScene.Instance.setTransition(TypeOfTransition.ChangeScene);
-                TransitionScene.Instance.LoadSceneWithTransition(targetScene);
-                break;
+                    TransitionScene.Instance.setTransition(TypeOfTransition.ChangeScene);
+                    TransitionScene.Instance.LoadSceneWithTransition(targetScene);
+                    break;
 
                 case TypeOfTransition.TeleportInScene:
                     PlayerInGameDataHolder.Instance.setSpawnID(targetSpawnID);
                     PlayerInGameDataHolder.Instance.Teleport();
+                    isProcessing = false; // Libera se for apenas teleport local rápido
                     break;
 
                 case TypeOfTransition.ChangeSceneAndTP:
                     PlayerInGameDataHolder.Instance.setSpawnID(targetSpawnID);
                     TransitionScene.Instance.setTransition(TypeOfTransition.ChangeSceneAndTP);
                     TransitionScene.Instance.LoadSceneWithTransition(targetScene);
-                    
                     break;
             }
+
             playerInside = false;
-        }    
+        }
         else
         {
-            // Fallback se o TransitionScene não existir
+            isProcessing = true;
             PlayerInGameDataHolder.Instance.setSpawnID(targetSpawnID);
             SceneManager.LoadScene(targetScene);
         }
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+    private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("PlayerInteract")) 
+        if (other.CompareTag("PlayerInteract") && !isProcessing)
         {
             playerInside = true;
         }
     }
 
-    void OiggerExit2D(Collider2D other)
+    private void OnTriggerExit2D(Collider2D other)
     {
-        if (other.CompareTag("PlayerInteract")) 
+        if (other.CompareTag("PlayerInteract"))
         {
             playerInside = false;
         }

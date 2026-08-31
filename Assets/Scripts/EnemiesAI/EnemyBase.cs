@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using UnityEngine.UI;
 /// <summary>
 /// Base class for enemy behavior, stats, activation, and combat interactions.
 /// </summary>
@@ -13,6 +13,15 @@ public class EnemyBase : MonoBehaviour
     [SerializeField] protected Collider2D col;
     [SerializeField] protected SpriteRenderer spr;
     [SerializeField] protected Vector3 dropPositionOffset;
+    #endregion
+
+    // -------------------------------------------------------------------------
+    // ENEMY DATA & PERSISTENCE
+    // -------------------------------------------------------------------------
+    #region Persistence
+    [Header("Persistência")]
+    [Tooltip("ID único desta instância no mapa (ex: 'floresta_s1_goblin_01')")]
+    [SerializeField] protected string enemyID;
     #endregion
 
     // -------------------------------------------------------------------------
@@ -54,7 +63,7 @@ public class EnemyBase : MonoBehaviour
     [SerializeField] protected float waitStartTime = 0.5f;
     protected float waitStartTimer;
     private float checkTimer = 0.2f;
-
+    [SerializeField] Image fillHealthBar;
     protected bool isActive;
     [SerializeField] private float activationDistance = 45f;
     [SerializeField] private float deactivationDistance = 50f;
@@ -68,6 +77,21 @@ public class EnemyBase : MonoBehaviour
     #region Unity Lifecycle
     protected virtual void Start()
     {
+        if (enemyData == null)
+        {
+            Debug.LogError($"[ERROR!] The object: {gameObject.name} has no data atached!");
+            Destroy(gameObject);
+            return;
+        }
+
+        // CHECAGEM DE PERSISTÊNCIA:
+        // Se este inimigo já foi registrado como morto na sessão atual, destrói antes de inicializar
+        if (InGameManager.Instance != null && InGameManager.Instance.InimigoFoiMorto(enemyID))
+        {
+            Destroy(gameObject);
+            return; 
+        }
+
         if (enemyData == null)
         {
             Debug.LogError($"[ERROR!] The object: {gameObject.name} has no data atached!");
@@ -122,11 +146,23 @@ public class EnemyBase : MonoBehaviour
             damage = enemyData.damageAttack;
         }
 
+        if (fillHealthBar != null && !isImortal)
+        {
+            fillHealthBar.fillAmount = currHp / maxHp;
+        }
         critChance = enemyData.critChance;
         variationPercentage = enemyData.variationPercentage;
 
         cam = Camera.main.transform;
         waitStartTimer = waitStartTime;
+    }
+    
+    protected virtual void Update()
+    {
+        if (fillHealthBar != null && !isImortal)
+        {
+            fillHealthBar.fillAmount = currHp / maxHp;
+        }
     }
     #endregion
 
@@ -217,14 +253,19 @@ public class EnemyBase : MonoBehaviour
             currHp -= damageFinal;
         }
 
-        Debug.Log(currHp);
-
         damagepopUp.transform.position = transform.position + offset;
         damagepopUp.GetComponent<DamagePopUp>().Setup(damageFinal);
 
         if (currHp <= 0f && !isImortal)
         {
             TryDropLoot();
+            
+            // REGISTRO DE MORTE:
+            if (InGameManager.Instance != null)
+            {
+                InGameManager.Instance.RegistrarMorteInimigo(enemyID);
+            }
+
             Destroy(gameObject);
             return;
         }
@@ -267,5 +308,21 @@ public class EnemyBase : MonoBehaviour
 
         playerCharacterBase.OnPlayerHit(damage);
     }
+
+    public float GetWeaponDamage => weapon.bulletDamage;
     #endregion
+
+    #if UNITY_EDITOR
+// Permite gerar o ID clicando com o botão direito no componente dentro do Inspector
+[ContextMenu("Gerar ID Único")]
+public void GenerateID()
+{
+    if (string.IsNullOrEmpty(enemyID))
+    {
+        // Gera algo como: Cena1_Goblin_a1b2c3d4
+        enemyID = $"{gameObject.scene.name}_{gameObject.name}_{System.Guid.NewGuid().ToString().Substring(0, 8)}";
+        UnityEditor.EditorUtility.SetDirty(this);
+    }
+}
+#endif
 }

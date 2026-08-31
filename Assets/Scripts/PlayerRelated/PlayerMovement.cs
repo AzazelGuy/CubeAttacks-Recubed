@@ -63,6 +63,16 @@ public class PlayerMovement : MonoBehaviour
     bool isGrounded;
 
     // -------------------------------------------------------------------------
+    // DROP THROUGH PLATFORMS
+    // -------------------------------------------------------------------------
+    [Header("Drop Through Platforms")]
+    [SerializeField] private LayerMask platformLayer;
+    [SerializeField] private float dropThroughTime = 0.25f;
+    [SerializeField] private float dropThroughVelocity = 3f;
+
+    private bool droppingThrough = false;
+
+    // -------------------------------------------------------------------------
     // PAREDE / WALL JUMP
     // -------------------------------------------------------------------------
     [Header("Wall Check")]
@@ -178,12 +188,6 @@ public class PlayerMovement : MonoBehaviour
                     rb.gravityScale = 3f;
                     rb.velocity = new Vector2(rb.velocity.x, Mathf.Max(rb.velocity.y, -wallSlideSpeed));
                 }
-
-                // Estando na parede, resetamos pulos se o Wall Jump não estiver desativado
-                if (!disableWallJump)
-                {
-                    currentJumpsRemaining = maxJumps;
-                }
             }
             else
             {
@@ -205,8 +209,14 @@ public class PlayerMovement : MonoBehaviour
             spriteTransform.transform.localScale = new Vector3(-1f, spriteTransform.transform.localScale.y, 1f);
         }
 
-        if (Input.GetButtonDown("Jump"))
+        if (yInput < 0 && Input.GetButtonDown("Jump"))
+        {
+            TryDropThroughPlatform();
+        }
+        else if (Input.GetButtonDown("Jump"))
+        {
             jumpBufferTimer = jumpBufferTime;
+        }
     }
 
     void FixedUpdate()
@@ -275,6 +285,48 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    void TryDropThroughPlatform()
+    {
+        if (!isGrounded || droppingThrough)
+            return;
+
+        // Check if the ground underneath the player is a platform
+        RaycastHit2D hit = Physics2D.Raycast(
+            groundCheck.position,
+            Vector2.down,
+            groundDistance,
+            platformLayer
+        );
+
+        if (hit.collider == null)
+            return;
+
+        StartCoroutine(DropThroughPlatform(hit.collider));
+    }
+
+    System.Collections.IEnumerator DropThroughPlatform(Collider2D platform)
+    {
+        droppingThrough = true;
+
+        // Prevent the normal jump system from triggering
+        jumpBufferTimer = 0f;
+        coyoteTimer = -10f;
+        groundDisableTimer = dropThroughTime;
+
+        // Temporarily ignore collision with this specific platform
+        Physics2D.IgnoreCollision(col, platform, true);
+
+        // Force the player downward
+        rb.velocity = new Vector2(rb.velocity.x, -dropThroughVelocity);
+
+        yield return new WaitForSeconds(dropThroughTime);
+
+        // Turn collision back on
+        Physics2D.IgnoreCollision(col, platform, false);
+
+        droppingThrough = false;
+    }
+
     void Jump(bool isWallJump = false)
     {
         groundDisableTimer = groundDisableTime;
@@ -285,21 +337,29 @@ public class PlayerMovement : MonoBehaviour
 
         // EXECUTA WALL JUMP SE APLICÁVEL
         if (isWallJump)
-        {
-            rb.velocity = Vector2.zero;
+{
+    rb.velocity = Vector2.zero;
 
-            moveBlockTimer = moveBlockTime;
-            wallJumpBlockTimer = wallJumpBlockTime;
+    moveBlockTimer = moveBlockTime;
+    wallJumpBlockTimer = wallJumpBlockTime;
 
-            int jumpXDir = -wallDir;
+    int jumpXDir = -wallDir;
 
-            rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
-            rb.AddForce(Vector2.right * (jumpXDir * wallJumpForce), ForceMode2D.Impulse);
+    // Replenish ONLY extra jumps.
+    currentJumpsRemaining = Mathf.Max(currentJumpsRemaining, maxJumps - 1);
 
-            dir = jumpXDir;
-            spriteTransform.transform.localScale = new Vector3(dir, spriteTransform.transform.localScale.y, 1f);
-            return;
-        }
+    rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+    rb.AddForce(Vector2.right * (jumpXDir * wallJumpForce), ForceMode2D.Impulse);
+
+    dir = jumpXDir;
+    spriteTransform.transform.localScale = new Vector3(
+        dir,
+        spriteTransform.transform.localScale.y,
+        1f
+    );
+
+    return;
+}
 
         // PULO NORMAL OU PULO NO AR (MULTI-JUMP)
         currentJumpsRemaining--; // Consome uma carga de pulo
@@ -371,6 +431,14 @@ public class PlayerMovement : MonoBehaviour
     public void AplicarEmpurraoRecuo(Vector2 forçaEmpurrao, float tempoBloqueioMovimento)
     {
         moveBlockTimer = tempoBloqueioMovimento;
+
+        // Se o recoil estiver empurrando na direção OPOSTA ao movimento atual,
+        // zeramos a velocidade horizontal para que o tiro não "lute" contra a patinação.
+        if (Mathf.Sign(forçaEmpurrao.x) != Mathf.Sign(rb.velocity.x) && Mathf.Abs(forçaEmpurrao.x) > 0.1f)
+        {
+            rb.velocity = new Vector2(0f, rb.velocity.y);
+        }
+
         rb.velocity = new Vector2(rb.velocity.x, Mathf.Max(0, rb.velocity.y));
         rb.AddForce(forçaEmpurrao, ForceMode2D.Impulse);
     }
