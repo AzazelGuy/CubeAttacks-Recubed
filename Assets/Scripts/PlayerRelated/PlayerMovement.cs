@@ -90,6 +90,17 @@ public class PlayerMovement : MonoBehaviour
     int wallDir;
 
     // -------------------------------------------------------------------------
+    // RAMPAS / SLOPES
+    // -------------------------------------------------------------------------
+    [Header("Slope Settings")]
+    [SerializeField] private float maxSlopeAngle = 45f;
+    [SerializeField] private bool canSlideOnSlopes = false; // SWITCH: Altere no Inspector ou via Scriptable
+
+    private Vector2 slopeNormalPerp;
+    private float slopeDownAngle;
+    private bool isOnSlope;
+
+    // -------------------------------------------------------------------------
     // ESTADO ESPECIAL E INTERNO
     // -------------------------------------------------------------------------
     [Header("Outros")]
@@ -247,8 +258,16 @@ public class PlayerMovement : MonoBehaviour
         if (moveBlockTimer > 0) return;
 
         float targetSpeed = CurrentMaxSpeed;
-        float targetVelocity = xInput * targetSpeed;
-        float speedDiff = targetVelocity - rb.velocity.x;
+        
+        // Define o vetor de movimento: no plano usa (1,0), na rampa alinha com a superfície
+        Vector2 moveDirection = Vector2.right;
+        if (isOnSlope && isGrounded)
+        {
+            moveDirection = -slopeNormalPerp; // Projeta o impulso na inclinação correta
+        }
+
+        float targetVelocityX = xInput * targetSpeed;
+        float speedDiff = targetVelocityX - rb.velocity.x;
 
         float currentAccel = isOnIce ? iceAcceleration : acceleration;
         float currentDecel = isOnIce ? iceDeceleration : CurrentDessacelerationSpeed;
@@ -272,8 +291,30 @@ public class PlayerMovement : MonoBehaviour
             forceFactor = currentDecel;
         }
 
-        rb.AddForce(Vector2.right * speedDiff * forceFactor, ForceMode2D.Force);
+        // Aplica a força na direção projetada (preserva impulso e velocidade)
+        rb.AddForce(moveDirection * (speedDiff * forceFactor), ForceMode2D.Force);
 
+        // LÓGICA DE TRAVA DE DESLIZAMENTO (SWITCH):
+        if (isGrounded && isOnSlope && xInput == 0 && jumpBufferTimer <= 0)
+        {
+            if (!canSlideOnSlopes)
+            {
+                // Personagem comum (Cubert): Zera gravidade e trava na rampa
+                rb.gravityScale = 0f;
+                rb.velocity = new Vector2(rb.velocity.x * 0.85f, 0f);
+            }
+            else
+            {
+                // Personagem de Deslizamento: Restaura a gravidade para escorregar pela física
+                rb.gravityScale = 3f;
+            }
+        }
+        else if (isGrounded)
+        {
+            rb.gravityScale = 3f;
+        }
+
+        // Limitador de velocidade max
         if (xInput != 0)
         {
             float maxAllowedSpeed = Mathf.Max(targetSpeed, Mathf.Abs(rb.velocity.x));
@@ -446,6 +487,30 @@ public class PlayerMovement : MonoBehaviour
     public void AplicarEmpurraoRecuo(Vector2 forçaEmpurrao)
     {
         rb.AddForce(forçaEmpurrao, ForceMode2D.Impulse);
+    }
+
+    void CheckSlope()
+    {
+        if (!isGrounded)
+        {
+            isOnSlope = false;
+            return;
+        }
+
+        RaycastHit2D hit = Physics2D.Raycast(groundCheck.position, Vector2.down, groundDistance + 0.2f, groundLayer);
+
+        if (hit)
+        {
+            slopeNormalPerp = Vector2.Perpendicular(hit.normal).normalized;
+            slopeDownAngle = Vector2.Angle(hit.normal, Vector2.up);
+
+            // Confirma se está em uma superfície inclinada válida
+            isOnSlope = slopeDownAngle <= maxSlopeAngle && slopeDownAngle > 0.05f;
+        }
+        else
+        {
+            isOnSlope = false;
+        }
     }
 
     void OnDrawGizmos()
