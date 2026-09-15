@@ -1,13 +1,15 @@
 ﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using TMPro;
 
 public enum TransitionState
 {
     Stoped,
-    Entering,   // Executando animação de entrada (ex: escurecendo)
-    Loading,    // Processando a cena/posição em segundo plano
-    Exiting     // Executando animação de saída (ex: clareando)
+    Entering,
+    Loading,
+    Exiting
 }
 
 public enum TypeOfTransition
@@ -21,19 +23,34 @@ public class TransitionScene : MonoBehaviour
 {
     public static TransitionScene Instance;
 
-    [Header("UI")]
+    [Header("UI & Visuals")]
     [SerializeField] private Animator animator;
+    [SerializeField] private GameObject loadingScreenUI;
+    [SerializeField] private Image progressBar;
 
-    [Header("Configurações de Segurança")]
+    [Header("Flavor Text UI")]
+    [SerializeField] private TextMeshProUGUI loadingText;
+    [SerializeField] private TextMeshProUGUI tipText;
+
+    [Header("Loading Effects Settings")]
+    [SerializeField] private float rainbowSpeed = 2.0f;
+    [SerializeField] private float dotsInterval = 0.4f;
+    [SerializeField] [TextArea(2, 4)] private string[] gameTips;
+
+    [Header("Settings")]
     [Tooltip("Tempo máximo de espera da animação caso o Animator falhe ou não tenha Animation Event.")]
     [SerializeField] private float animationTimeLimit = 1.5f;
+    [Tooltip("Tempo mínimo que a tela de carregamento deve ser exibida.")]
+    [SerializeField] private float minLoadingTime = 1.0f;
 
     public TransitionState CurrState { get; private set; } = TransitionState.Stoped;
     private TypeOfTransition type = TypeOfTransition.ChangeScene;
 
-    // Controla se a animação finalizou
     private bool isEnterAnimationFinished = false;
     private bool isExitAnimationFinished = false;
+
+    private Coroutine rainbowCoroutine;
+    private Coroutine dotsCoroutine;
 
     private void Awake()
     {
@@ -41,6 +58,9 @@ public class TransitionScene : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+
+            if (loadingScreenUI != null)
+                loadingScreenUI.SetActive(false);
         }
         else
         {
@@ -50,7 +70,6 @@ public class TransitionScene : MonoBehaviour
 
     public void LoadSceneWithTransition(string sceneName)
     {
-        // Se a transição já estiver acontecendo (Entering, Loading ou Exiting), ignora chamadas duplicadas
         if (CurrState != TransitionState.Stoped)
         {
             Debug.LogWarning("[TransitionScene] Transição já em andamento. Chamada duplicada ignorada.");
@@ -62,45 +81,75 @@ public class TransitionScene : MonoBehaviour
 
     private IEnumerator TransitionCoroutine(string sceneName)
     {
-        // Reseta as flags para a nova transição
+        // Reset time scale in case game was paused when leaving a level
+        Time.timeScale = 1f;
+
         isEnterAnimationFinished = false;
         isExitAnimationFinished = false;
 
         CurrState = TransitionState.Entering;
 
-        // --- 1. SEGURANÇA: Verificar se o Animator existe e está ativo ---
         bool animatorExists = animator != null && animator.isActiveAndEnabled && animator.runtimeAnimatorController != null;
 
         if (animatorExists)
         {
-            // Tenta disparar a animação de entrada
             animator.SetTrigger("Enter");
 
-            // Aguarda o Animation Event disparar OU estourar o tempo limite de segurança
             float runTime = 0f;
             while (!isEnterAnimationFinished && runTime < animationTimeLimit)
             {
-                runTime += Time.deltaTime;
-                yield return null; // Pausa até o próximo frame
-            }
-
-            if (!isEnterAnimationFinished)
-            {
-                Debug.LogWarning("[TransitionManager] O Animation Event de ENTER não foi chamado a tempo! Pulando animação por segurança.");
+                runTime += Time.unscaledDeltaTime;
+                yield return null;
             }
         }
-        else
-        {
-            Debug.LogWarning("[TransitionManager] Animator ausente ou desativado. Pulando animação de entrada.");
-        }
 
-        // --- 2. CARREGAMENTO DA CENA (Executa SEMPRE) ---
+        // --- 2. TELA DE LOADING & FLAVOR EFFECTS ---
         CurrState = TransitionState.Loading;
 
-        AsyncOperation op = SceneManager.LoadSceneAsync(sceneName);
+        if (loadingScreenUI != null)
+            loadingScreenUI.SetActive(true);
 
-        // Pausa e espera até que a cena seja 100% carregada
-        yield return new WaitUntil(() => op.isDone);
+        if (tipText != null && gameTips != null && gameTips.Length > 0)
+        {
+            tipText.text = gameTips[Random.Range(0, gameTips.Length)];
+        }
+
+        if (loadingText != null)
+        {
+            rainbowCoroutine = StartCoroutine(AnimateRainbowText());
+            dotsCoroutine = StartCoroutine(AnimateLoadingDots());
+        }
+
+        // Low gives the smoothest UI frame rates during loading
+        Application.backgroundLoadingPriority = ThreadPriority.Low; 
+
+        AsyncOperation op = SceneManager.LoadSceneAsync(sceneName);
+        op.allowSceneActivation = false;
+
+        float timer = 0f;
+
+        while (!op.isDone)
+        {
+            timer += Time.unscaledDeltaTime;
+
+            float targetProgress = Mathf.Clamp01(op.progress / 0.9f);
+
+            if (progressBar != null)
+            {
+                progressBar.fillAmount = targetProgress;
+            }
+
+            if (op.progress >= 0.9f && timer >= minLoadingTime)
+            {
+                op.allowSceneActivation = true;
+            }
+
+            yield return null;
+        }
+
+        // Stop loading text animations before switching active state
+        if (rainbowCoroutine != null) StopCoroutine(rainbowCoroutine);
+        if (dotsCoroutine != null) StopCoroutine(dotsCoroutine);
 
         if (type == TypeOfTransition.ChangeSceneAndTP)
         {
@@ -108,6 +157,9 @@ public class TransitionScene : MonoBehaviour
             setTransition(TypeOfTransition.ChangeScene);
         }
 
+        if (loadingScreenUI != null)
+            loadingScreenUI.SetActive(false);
+        Application.backgroundLoadingPriority = ThreadPriority.Normal;
         // --- 3. ANIMAÇÃO DE SAÍDA (EXIT) ---
         if (animatorExists)
         {
@@ -117,36 +169,42 @@ public class TransitionScene : MonoBehaviour
             float runTime = 0f;
             while (!isExitAnimationFinished && runTime < animationTimeLimit)
             {
-                runTime += Time.deltaTime;
+                runTime += Time.unscaledDeltaTime;
                 yield return null;
             }
         }
 
-        // Finaliza o processo com segurança total
         CurrState = TransitionState.Stoped;
     }
 
-    // ========================================================================
-    // MÉTODOS CHAMADOS PELOS ANIMATION EVENTS NO UNITY
-    // ========================================================================
-
-    /// <summary>
-    /// Coloque este método no Animation Event no ÚLTIMO frame da animação de ENTER.
-    /// </summary>
-    public void OnEnterAnimationComplete()
+    private IEnumerator AnimateRainbowText()
     {
-        isEnterAnimationFinished = true;
+        float hue = 0f;
+        while (true)
+        {
+            hue = (hue + Time.unscaledDeltaTime * rainbowSpeed) % 1.0f;
+            loadingText.color = Color.HSVToRGB(hue, 0.8f, 1.0f);
+            yield return null;
+        }
     }
 
-    /// <summary>
-    /// Coloque este método no Animation Event no ÚLTIMO frame da animação de EXIT.
-    /// </summary>
-    public void OnExitAnimationComplete()
+    private IEnumerator AnimateLoadingDots()
     {
-        isExitAnimationFinished = true;
+        int dotCount = 0;
+        string baseText = "LOADING";
+
+        while (true)
+        {
+            string dots = new string('.', dotCount);
+            loadingText.text = baseText + dots;
+
+            dotCount = (dotCount + 1) % 4;
+            yield return new WaitForSecondsRealtime(dotsInterval);
+        }
     }
 
-    // ========================================================================
+    public void OnEnterAnimationComplete() => isEnterAnimationFinished = true;
+    public void OnExitAnimationComplete() => isExitAnimationFinished = true;
 
     public TransitionState state => CurrState;
 

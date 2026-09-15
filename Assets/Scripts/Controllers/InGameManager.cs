@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.SceneManagement;
 public class InGameManager : MonoBehaviour
 {
     public static InGameManager Instance { get; private set; }
@@ -25,6 +25,14 @@ public class InGameManager : MonoBehaviour
         }
     }
 
+    void Update()
+    {
+        if (SceneManager.GetActiveScene().name == "HubWorld" || SceneManager.GetActiveScene().name == "MainMenu")
+        {
+            Instance = null;
+            Destroy(gameObject);
+        }
+    }
     public bool InimigoFoiMorto(string id)
     {
         if (string.IsNullOrEmpty(id)) return false;

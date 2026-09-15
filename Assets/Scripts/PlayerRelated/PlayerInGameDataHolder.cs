@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class PlayerInGameDataHolder : MonoBehaviour
 {
@@ -147,6 +148,18 @@ public class PlayerInGameDataHolder : MonoBehaviour
         {
             UIControllerInGame.Instance.SetHealthEffect(playerHealthCurr, playerHealthMax);
         }
+
+        if (SceneManager.GetActiveScene().name == "HubWorld" || SceneManager.GetActiveScene().name == "MainMenu")
+        {
+            Instance = null;
+            Destroy(gameObject);
+        }
+    }
+
+    public void OnDestroy()
+    {
+        Destroy(PlayerIndex);
+        PlayerIndex = null;
     }
 
     #endregion
@@ -177,6 +190,8 @@ public class PlayerInGameDataHolder : MonoBehaviour
 
         return PlayerIndex;
     }
+
+
 
     #endregion
 

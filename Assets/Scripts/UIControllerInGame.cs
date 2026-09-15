@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class UIControllerInGame : MonoBehaviour
 {
@@ -36,7 +37,11 @@ public class UIControllerInGame : MonoBehaviour
 
         BulletAmount.text = $"{bulletscurr}/{bulletsMax}";
         WeaponName.text = $"{weaponName}";
-        
+        if (SceneManager.GetActiveScene().name == "HubWorld" || SceneManager.GetActiveScene().name == "MainMenu")
+        {
+            Instance = null;
+            Destroy(gameObject);
+        }
     }
     public void SetHealthEffect(float currentAmnt, float maxAmnt)
     {

@@ -15,6 +15,9 @@ EditorBuildSettings:
     path: Assets/Scenes/MainMenu.unity
     guid: 4647b85b4ba1b2f4e9283adba3992255
   - enabled: 1
+    path: Assets/Scenes/LevelSelect/HubWorld.unity
+    guid: 2dcb75d1936795143a93746817ac7e92
+  - enabled: 1
     path: Assets/Scenes/Testing.unity
     guid: 2c805044a9c09fc4a837f39655b5c061
   m_configObjects: {}

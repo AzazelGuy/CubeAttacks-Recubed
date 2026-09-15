@@ -43,6 +43,7 @@ public class PauseMenuActions : MonoBehaviour
         {
             TogglePause();
         }
+        
     }
 
     public void Resume()
@@ -155,6 +156,32 @@ public class PauseMenuActions : MonoBehaviour
             {
                 btn.OnDeselect(null); // Force deselect state
             }
+    }
+
+    public void ReturntoHub()
+    {
+        Button[] buttons = pauseMenuGroup.GetComponentsInChildren<Button>();
+            foreach (Button btn in buttons)
+            {
+                btn.OnDeselect(null); // Force deselect state
+            }
+        instance = null;
+        Destroy(gameObject);
+        TransitionScene.Instance.setTransition(TypeOfTransition.ChangeScene);
+        TransitionScene.Instance.LoadSceneWithTransition("HubWorld");
+    }
+
+    public void ReturntoMainMenu()
+    {
+        Button[] buttons = pauseMenuGroup.GetComponentsInChildren<Button>();
+            foreach (Button btn in buttons)
+            {
+                btn.OnDeselect(null); // Force deselect state
+            }
+        instance = null;
+        Destroy(gameObject);
+        TransitionScene.Instance.setTransition(TypeOfTransition.ChangeScene);
+        TransitionScene.Instance.LoadSceneWithTransition("MainMenu");
     }
     #endregion
     public bool Paused => isPaused;
