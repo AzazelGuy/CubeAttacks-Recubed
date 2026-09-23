@@ -1,0 +1,85 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &6467608174165726115
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6467608174165726125}
+  - component: {fileID: 6467608174165726124}
+  - component: {fileID: 6467608174165726126}
+  m_Layer: 0
+  m_Name: INGAMECONTROLLER
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6467608174165726125
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6467608174165726115}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 38.51478, y: -9.986646, z: 1.9566238}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6467608174165726124
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6467608174165726115}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b91da2ba05e6f8469931fd65947f102, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerData: {fileID: 11400000, guid: 0c8d8b0831e04794aba54f20f9de016e, type: 2}
+  originPlayer: {fileID: 0}
+  healthFillImage: {fileID: 0}
+  shieldFillImage: {fileID: 0}
+  healthAmntText: {fileID: 0}
+  shieldAmntText: {fileID: 0}
+  fillLerpSpeed: 5
+  timeUntilRegen: 30
+  regenMult: 0.001
+  shieldRegenDelay: 5
+  shieldRegenMult: 0.01
+  shieldRegenDelayMultiplierWhenEmpty: 2
+  Arsenal:
+  - {fileID: 11400000, guid: 097119c20a6e4924c85b915c4ca4145b, type: 2}
+  - {fileID: 11400000, guid: 1068d331739bc5d49900b71931fd5ce7, type: 2}
+  - {fileID: 11400000, guid: ae91354f9ee049a4682b729dbe6ad68b, type: 2}
+  - {fileID: 11400000, guid: 8ed0ef94e3a4a224991a747174f59ae1, type: 2}
+  upgradeDatabase: {fileID: 11400000, guid: dea17b0dec57240b2bdce319e7c3e263, type: 2}
+  activeStageUpgrades: []
+  enableDebugUpgrades: 1
+  debugTestUpgrades:
+  - {fileID: 11400000, guid: f2721154ab535213a89cc261bd14e30f, type: 2}
+  - {fileID: 11400000, guid: 86f961ae0433a3d91a4e8fff7861ffa5, type: 2}
+  - {fileID: 11400000, guid: 9601419cc2105eaceaf3f5d5e0bbf5c7, type: 2}
+  - {fileID: 11400000, guid: aadacc0abdbae8da9a55ca81d98b5ad9, type: 2}
+--- !u!114 &6467608174165726126
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6467608174165726115}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95f6c420b553cb546b8e2bc09356238b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  inimigosMortos: 0
