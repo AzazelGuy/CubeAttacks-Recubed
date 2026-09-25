@@ -20,4 +20,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Testing.unity
     guid: 2c805044a9c09fc4a837f39655b5c061
+  - enabled: 1
+    path: Assets/Scenes/CubertsHouse.unity
+    guid: 609ffcb1de230864fb740d2338076be1
   m_configObjects: {}

@@ -12263,7 +12263,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fbfb4037dd4f629408a157fd405b129e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetScene: Testing
+  targetScene: CubertsHouse
   levelName: Cubert's House
   stagename_ui: {fileID: 886458729}
 --- !u!1 &1859388224
