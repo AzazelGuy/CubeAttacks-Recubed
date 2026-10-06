@@ -424,7 +424,7 @@ public class ReScoutAI : EnemyBase
 
         rb.gravityScale = 10f;
 
-        rb.velocity = new Vector2(rb.velocity.x, 0f);
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
     }
 
@@ -433,12 +433,12 @@ public class ReScoutAI : EnemyBase
         if (waitStartTimer > 0) return;
 
         float targetVelocity = xInput * moveSpeed;
-        float speedDiff = targetVelocity - rb.velocity.x;
+        float speedDiff = targetVelocity - rb.linearVelocity.x;
         float forceFactor;
 
         if (xInput != 0)
         {
-            if (isGrounded && Mathf.Sign(xInput) != Mathf.Sign(rb.velocity.x) && Mathf.Abs(rb.velocity.x) > 0.5f)
+            if (isGrounded && Mathf.Sign(xInput) != Mathf.Sign(rb.linearVelocity.x) && Mathf.Abs(rb.linearVelocity.x) > 0.5f)
             {
                 forceFactor = skidDeceleration;
             }
@@ -456,9 +456,9 @@ public class ReScoutAI : EnemyBase
 
         if (xInput != 0)
         {
-            rb.velocity = new Vector2(
-                Mathf.Clamp(rb.velocity.x, -moveSpeed, moveSpeed),
-                rb.velocity.y
+            rb.linearVelocity = new Vector2(
+                Mathf.Clamp(rb.linearVelocity.x, -moveSpeed, moveSpeed),
+                rb.linearVelocity.y
             );
         }
     }
@@ -468,7 +468,7 @@ public class ReScoutAI : EnemyBase
         if (isGrounded && groundDisableTimer <= 0)
             rb.gravityScale = 10f;
         else
-            rb.gravityScale = rb.velocity.y > 5f ? 10f : 20f;
+            rb.gravityScale = rb.linearVelocity.y > 5f ? 10f : 20f;
     }
     #endregion
     #endregion

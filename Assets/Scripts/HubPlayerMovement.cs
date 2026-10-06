@@ -49,6 +49,6 @@ public class HubPlayerMovement : MonoBehaviour
     {
         // 4. Aplica o movimento no Rigidbody preservando a gravidade/colisão Y
         Vector3 targetVelocity = moveInput * moveSpeed;
-        rb.velocity = new Vector3(targetVelocity.x, rb.velocity.y, targetVelocity.z);
+        rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
     }
 }

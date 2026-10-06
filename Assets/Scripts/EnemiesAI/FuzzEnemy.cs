@@ -121,9 +121,9 @@ public class FuzzEnemy : EnemyBase
     {
         if (spriteTransform == null) return;
 
-        float currentSpeed = Mathf.Abs(rb.velocity.x);
+        float currentSpeed = Mathf.Abs(rb.linearVelocity.x);
         float direction = currentSpeed > 0.01f
-            ? Mathf.Sign(rb.velocity.x)
+            ? Mathf.Sign(rb.linearVelocity.x)
             : Mathf.Sign(xInput);
 
         if (direction != 0f)
@@ -139,12 +139,12 @@ public class FuzzEnemy : EnemyBase
         if (waitStartTimer > 0) return;
         
         float targetVelocity = xInput * moveSpeed;
-        float speedDiff = targetVelocity - rb.velocity.x;
+        float speedDiff = targetVelocity - rb.linearVelocity.x;
         float forceFactor;
 
         if (xInput != 0 )
         {
-            if (Mathf.Sign(xInput) != Mathf.Sign(rb.velocity.x) && Mathf.Abs(rb.velocity.x) > 0.5f)
+            if (Mathf.Sign(xInput) != Mathf.Sign(rb.linearVelocity.x) && Mathf.Abs(rb.linearVelocity.x) > 0.5f)
             {
                 forceFactor = skidDeceleration;
             }
@@ -162,9 +162,9 @@ public class FuzzEnemy : EnemyBase
 
         if (xInput != 0)
         {
-            rb.velocity = new Vector2(
-                Mathf.Clamp(rb.velocity.x, -moveSpeed, moveSpeed),
-                rb.velocity.y
+            rb.linearVelocity = new Vector2(
+                Mathf.Clamp(rb.linearVelocity.x, -moveSpeed, moveSpeed),
+                rb.linearVelocity.y
             );
         }
     }

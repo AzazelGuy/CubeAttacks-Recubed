@@ -173,7 +173,7 @@ public class PlayerMovement : MonoBehaviour
         else
         {
             // Fix: Only enter wall interact mode if falling (rb.velocity.y <= 0) OR if holding UP to Wall Climb
-            bool isMovingUpward = rb.velocity.y > 0.05f;
+            bool isMovingUpward = rb.linearVelocity.y > 0.05f;
             bool wantsToClimb = wallClimbEnabled && yInput > 0;
 
             bool canWallInteract = xInput != 0 && onWall && !Input.GetButtonDown("Jump")
@@ -185,19 +185,19 @@ public class PlayerMovement : MonoBehaviour
                 if (wallClimbEnabled && yInput > 0)
                 {
                     rb.gravityScale = 0f;
-                    rb.velocity = new Vector2(rb.velocity.x, moveSpeed * 0.75f);
+                    rb.linearVelocity = new Vector2(rb.linearVelocity.x, moveSpeed * 0.75f);
                 }
                 // 2. WALL STICK UPGRADE (Pressing into wall while falling)
                 else if (wallStickEnabled && Mathf.Sign(xInput) == wallDir)
                 {
                     rb.gravityScale = 0f;
-                    rb.velocity = new Vector2(rb.velocity.x, 0f);
+                    rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
                 }
                 // 3. DEFAULT WALL SLIDE (Slide down with gravity)
                 else
                 {
                     rb.gravityScale = 3f;
-                    rb.velocity = new Vector2(rb.velocity.x, Mathf.Max(rb.velocity.y, -wallSlideSpeed));
+                    rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Max(rb.linearVelocity.y, -wallSlideSpeed));
                 }
             }
             else
@@ -267,7 +267,7 @@ public class PlayerMovement : MonoBehaviour
         }
 
         float targetVelocityX = xInput * targetSpeed;
-        float speedDiff = targetVelocityX - rb.velocity.x;
+        float speedDiff = targetVelocityX - rb.linearVelocity.x;
 
         float currentAccel = isOnIce ? iceAcceleration : acceleration;
         float currentDecel = isOnIce ? iceDeceleration : CurrentDessacelerationSpeed;
@@ -277,7 +277,7 @@ public class PlayerMovement : MonoBehaviour
 
         if (xInput != 0)
         {
-            if (isGrounded && Mathf.Sign(xInput) != Mathf.Sign(rb.velocity.x) && Mathf.Abs(rb.velocity.x) > 0.5f)
+            if (isGrounded && Mathf.Sign(xInput) != Mathf.Sign(rb.linearVelocity.x) && Mathf.Abs(rb.linearVelocity.x) > 0.5f)
             {
                 forceFactor = currentSkid;
             }
@@ -301,7 +301,7 @@ public class PlayerMovement : MonoBehaviour
             {
                 // Personagem comum (Cubert): Zera gravidade e trava na rampa
                 rb.gravityScale = 0f;
-                rb.velocity = new Vector2(rb.velocity.x * 0.85f, 0f);
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x * 0.85f, 0f);
             }
             else
             {
@@ -317,11 +317,11 @@ public class PlayerMovement : MonoBehaviour
         // Limitador de velocidade max
         if (xInput != 0)
         {
-            float maxAllowedSpeed = Mathf.Max(targetSpeed, Mathf.Abs(rb.velocity.x));
+            float maxAllowedSpeed = Mathf.Max(targetSpeed, Mathf.Abs(rb.linearVelocity.x));
 
-            rb.velocity = new Vector2(
-                Mathf.Clamp(rb.velocity.x, -maxAllowedSpeed, maxAllowedSpeed),
-                rb.velocity.y
+            rb.linearVelocity = new Vector2(
+                Mathf.Clamp(rb.linearVelocity.x, -maxAllowedSpeed, maxAllowedSpeed),
+                rb.linearVelocity.y
             );
         }
     }
@@ -358,7 +358,7 @@ public class PlayerMovement : MonoBehaviour
         Physics2D.IgnoreCollision(col, platform, true);
 
         // Force the player downward
-        rb.velocity = new Vector2(rb.velocity.x, -dropThroughVelocity);
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, -dropThroughVelocity);
 
         yield return new WaitForSeconds(dropThroughTime);
 
@@ -379,7 +379,7 @@ public class PlayerMovement : MonoBehaviour
         // EXECUTA WALL JUMP SE APLICÁVEL
         if (isWallJump)
 {
-    rb.velocity = Vector2.zero;
+    rb.linearVelocity = Vector2.zero;
 
     moveBlockTimer = moveBlockTime;
     wallJumpBlockTimer = wallJumpBlockTime;
@@ -404,7 +404,7 @@ public class PlayerMovement : MonoBehaviour
 
         // PULO NORMAL OU PULO NO AR (MULTI-JUMP)
         currentJumpsRemaining--; // Consome uma carga de pulo
-        rb.velocity = new Vector2(rb.velocity.x, 0f);
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
     }
 
@@ -475,12 +475,12 @@ public class PlayerMovement : MonoBehaviour
 
         // Se o recoil estiver empurrando na direção OPOSTA ao movimento atual,
         // zeramos a velocidade horizontal para que o tiro não "lute" contra a patinação.
-        if (Mathf.Sign(forçaEmpurrao.x) != Mathf.Sign(rb.velocity.x) && Mathf.Abs(forçaEmpurrao.x) > 0.1f)
+        if (Mathf.Sign(forçaEmpurrao.x) != Mathf.Sign(rb.linearVelocity.x) && Mathf.Abs(forçaEmpurrao.x) > 0.1f)
         {
-            rb.velocity = new Vector2(0f, rb.velocity.y);
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
         }
 
-        rb.velocity = new Vector2(rb.velocity.x, Mathf.Max(0, rb.velocity.y));
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Max(0, rb.linearVelocity.y));
         rb.AddForce(forçaEmpurrao, ForceMode2D.Impulse);
     }
 
@@ -561,7 +561,7 @@ public class PlayerMovement : MonoBehaviour
         get
         {
             if (rb == null) return Vector2.zero;
-            Vector2 velocity = rb.velocity;
+            Vector2 velocity = rb.linearVelocity;
             if (float.IsNaN(velocity.x) || float.IsInfinity(velocity.x)) velocity.x = 0f;
             if (float.IsNaN(velocity.y) || float.IsInfinity(velocity.y)) velocity.y = 0f;
             return velocity;
