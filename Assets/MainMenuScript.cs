@@ -3,6 +3,15 @@ using UnityEngine.UI;
 public class MainMenuScript : MonoBehaviour
 {
     [SerializeField] private GameObject SettingsMenu;
+    [SerializeField] private AudioClip Music;
+
+    void Start()
+    {
+      if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayMusic(Music);
+        }  
+    }
     public void QuitGame()
     {
         Application.Quit();

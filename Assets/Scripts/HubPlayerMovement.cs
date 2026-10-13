@@ -7,6 +7,7 @@ public class HubPlayerMovement : MonoBehaviour
     [SerializeField] private Rigidbody rb;
     [SerializeField] private SpriteRenderer spriteRenderer;
 
+    [SerializeField] AudioClip Music;
     private Camera mainCamera;
     private Vector3 moveInput;
 
@@ -14,6 +15,10 @@ public class HubPlayerMovement : MonoBehaviour
     {
         mainCamera = Camera.main;
         if (rb == null) rb = GetComponent<Rigidbody>();
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayMusic(Music);
+        }
     }
 
     void Update()
