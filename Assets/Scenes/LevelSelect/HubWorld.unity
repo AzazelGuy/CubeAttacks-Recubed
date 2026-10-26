@@ -5763,6 +5763,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 851596226}
+  - component: {fileID: 851596228}
+  - component: {fileID: 851596227}
   m_Layer: 0
   m_Name: Tree (5)
   m_TagString: Untagged
@@ -5786,6 +5788,42 @@ Transform:
   - {fileID: 1564345969}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &851596227
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 851596225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fbfb4037dd4f629408a157fd405b129e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetScene: Testing
+  levelName: Nightly Woods
+  stagename_ui: {fileID: 886458729}
+--- !u!65 &851596228
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 851596225}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2.3330903, y: 2.4014106, z: 1.7440127}
+  m_Center: {x: 0, y: 0.7007055, z: 0}
 --- !u!1 &856705538
 GameObject:
   m_ObjectHideFlags: 0
