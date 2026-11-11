@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class WeaponControllerPlayer : MonoBehaviour
 {
-    #region Inicializa��o de Variaveis
+    #region Inicializacaoo de Variaveis
     private float xDir, yDir;
 
     [Header("Gun Configurations")]
@@ -21,7 +21,11 @@ public class WeaponControllerPlayer : MonoBehaviour
     [HideInInspector] public bool alert = false;
     private float alertTimer;
     [SerializeField] private float alertTime = 5f; // Ajustado para 5 segundos conforme pediu
-
+    [SerializeField] private GameObject hands;
+    [SerializeField] private string knockBackControllName;
+    [SerializeField] private string stopshootingControllName;
+    private PlayerAnimExtras playerAnimExtras;
+    [SerializeField] private float aimFacingHoldTime = 0.25f;
     private enum FireMode
     {
         _8directional,
@@ -56,6 +60,7 @@ public class WeaponControllerPlayer : MonoBehaviour
         PlayerInGameDataHolder.Instance.InitializeAmmo(PlayerInGameDataHolder.Instance.Arsenal);
     }
 
+    playerAnimExtras = GetComponent<PlayerAnimExtras>();
     ResetarAlerta(false);
     UpdateWeaponAppearance();
 }
@@ -99,6 +104,10 @@ public class WeaponControllerPlayer : MonoBehaviour
             {
                 ResetarAlerta(false); // Esconde a arma
             }
+            if (alertTimer <= (alertTimer - 0.5f) && playerAnimExtras != null && stopshootingControllName != null)
+            {
+                playerAnimExtras.playAnim(stopshootingControllName);
+            }
         }
     }
 
@@ -111,7 +120,7 @@ public class WeaponControllerPlayer : MonoBehaviour
     {
         alert = estaAtivo;
         gunsprite.enabled = estaAtivo; // Liga ou desliga o sprite na tela
-
+        hands.SetActive(!estaAtivo);
         if (estaAtivo)
         {
             alertTimer = alertTime; // Reseta o cron�metro para 5 segundos
@@ -163,8 +172,9 @@ public class WeaponControllerPlayer : MonoBehaviour
                 {
                     float angle = Mathf.Atan2(mdirection.y, mdirection.x) * Mathf.Rad2Deg;
 
+                    
                     float smoothAngle = Mathf.MoveTowardsAngle(
-                        gunPivot.eulerAngles.z, angle, rotateSpeed * Time.deltaTime);
+                    gunPivot.eulerAngles.z, angle, rotateSpeed * Time.deltaTime);
                     gunPivot.rotation = Quaternion.Euler(0, 0, smoothAngle);
 
                     Vector3 scale = gunPivot.localScale;
@@ -186,6 +196,7 @@ public class WeaponControllerPlayer : MonoBehaviour
                 }
                 break;
         }
+
     }
 
     // Cuidar dos tiros da arma
@@ -199,16 +210,22 @@ private void handleFire()
         ? (armaAtual.isAutomatic ? Input.GetKey(KeyCode.H) : Input.GetKeyDown(KeyCode.H))
         : (armaAtual.isAutomatic ? Input.GetKey(KeyCode.Mouse0) : Input.GetKeyDown(KeyCode.Mouse0));
 
-    if (querAtirar) ResetarAlerta(true);
+        if (querAtirar)
+        {
+            ResetarAlerta(true);
+            if (playerMovement != null)
+                playerMovement.SetAimFacing(GetAimSide(), aimFacingHoldTime);
+        }
 
-    // Read ammo from Singleton!
-    int ammoAvailable = PlayerInGameDataHolder.Instance.GetAmmo(currentWeapon);
+        // Read ammo from Singleton!
+        int ammoAvailable = PlayerInGameDataHolder.Instance.GetAmmo(currentWeapon);
 
     if (querAtirar && Time.time >= nextFireTime && ammoAvailable > 0)
     {
         nextFireTime = Time.time + armaAtual.coolDownTime;
         Atirar(armaAtual);
     }
+    
 }
 
     // UPDATE Atirar() ammo deductions:
@@ -224,8 +241,14 @@ private void Atirar(WeaponData arma)
         playerMovement.AplicarEmpurraoRecuo(direcaoEmpurrao * intensidadeForca, 0.05f);
     }
 
-    // PROJECTILE WEAPONS
-    if (arma.firingMethod == WeaponData.firingType.Projectile)
+        // PLAY ANIMATION
+        if (playerAnimExtras != null && knockBackControllName != null)
+        {
+            playerAnimExtras.playAnim(knockBackControllName);
+        }
+
+        // PROJECTILE WEAPONS
+        if (arma.firingMethod == WeaponData.firingType.Projectile)
     {
         PlayerInGameDataHolder.Instance.ConsumeAmmo(currentWeapon, 1);
         if (arma.bulletPrefab != null)
@@ -235,6 +258,7 @@ private void Atirar(WeaponData arma)
         return;
     }
 
+        
     // RAYCAST WEAPONS
     float erroAtual = arma.imprecisao;
     int ammoAvailable = PlayerInGameDataHolder.Instance.GetAmmo(currentWeapon);
@@ -320,6 +344,18 @@ private void Atirar(WeaponData arma)
         Destroy(linha.gameObject);
     }
 
+    // -1 esquerda, 1 direita, 0 = sem opinião (mouse em cima do player)
+    private int GetAimSide()
+    {
+        if (currAim == FireMode.mouseAim)
+        {
+            float dx = Camera.main.ScreenToWorldPoint(Input.mousePosition).x - gunPivot.position.x;
+            if (Mathf.Abs(dx) < 0.05f) return 0; // deadzone pra não ficar tremendo
+            return dx > 0 ? 1 : -1;
+        }
+
+        return xDir == 0 ? 0 : (xDir > 0 ? 1 : -1);
+    }
     private void handleSwap()
 {
     if (PlayerInGameDataHolder.Instance.Arsenal.Count <= 1) return; // Don't swap if holding 1 or 0 weapons

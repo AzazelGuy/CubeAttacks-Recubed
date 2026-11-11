@@ -176,12 +176,19 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float wallJumpControlTime = 0.2f;
     [Tooltip("Fração do controle aéreo durante esse tempo (0 = nenhum, 1 = total)")]
     [SerializeField, Range(0f, 1f)] float wallJumpAirControl = 0.35f;
+    [Header("Facing pela mira")]
+    [Tooltip("Tempo (s) após um wall jump em que a mira NÃO vira o personagem")]
+    [SerializeField] float wallJumpAimFacingLockTime = 0.35f;
+
+    float wallJumpAimLockTimer;
+    float aimFacingTimer;
+    int aimFacingDir;
 
     [Header("Wall Jump correndo (bônus)")]
     [Tooltip("Multiplica a força HORIZONTAL do wall jump quando está correndo")]
     [SerializeField] float wallJumpRunHorizontalMultiplier = 1.25f;
     [Tooltip("Multiplica a força VERTICAL do wall jump quando está correndo (a altura cresce com o quadrado disso)")]
-    [SerializeField] float wallJumpRunVerticalMultiplier = 1.1f;
+    [SerializeField] float wallJumpRunVerticalMultiplier = 1.5f;
 
     float wallJumpBlockTimer;
     float wallJumpControlTimer;
@@ -314,6 +321,8 @@ public class PlayerMovement : MonoBehaviour
         wallJumpBlockTimer -= dt;
         wallJumpControlTimer -= dt;
         groundDisableTimer -= dt;
+        aimFacingTimer -= dt;
+        wallJumpAimLockTimer -= dt;
     }
 
     void HandleJumpInput()
@@ -335,16 +344,29 @@ public class PlayerMovement : MonoBehaviour
     {
         if (moveBlockTimer > 0) return;
 
-        if (xInput > 0)
-        {
-            dir = 1;
-            spriteTransform.localScale = new Vector3(1f, spriteTransform.localScale.y, 1f);
-        }
-        else if (xInput < 0)
-        {
-            dir = -1;
-            spriteTransform.localScale = new Vector3(-1f, spriteTransform.localScale.y, 1f);
-        }
+        int desired = 0;
+
+        // Mira manda enquanto o gatilho está "quente", exceto logo após wall jump
+        if (aimFacingTimer > 0f && wallJumpAimLockTimer <= 0f)
+            desired = aimFacingDir;
+        else if (xInput > 0) desired = 1;
+        else if (xInput < 0) desired = -1;
+
+        if (desired != 0) ApplyFacing(desired);
+    }
+
+    /// <summary>Chamado pelo script de arma: vira o personagem pro lado da mira por holdTime segundos.</summary>
+    public void SetAimFacing(int side, float holdTime)
+    {
+        if (side == 0) return;
+        aimFacingDir = side > 0 ? 1 : -1;
+        aimFacingTimer = holdTime;
+    }
+
+    void ApplyFacing(int side)
+    {
+        dir = side;
+        spriteTransform.localScale = new Vector3(side, spriteTransform.localScale.y, 1f);
     }
 
     #endregion
@@ -475,6 +497,7 @@ public class PlayerMovement : MonoBehaviour
         // para o chute não ser cancelado no mesmo instante.
         if (!isGrounded && wallJumpControlTimer > 0f)
             rate *= wallJumpAirControl;
+        
 
         bool idleOnSlope = onSlopeGround && xInput == 0;
 
@@ -551,6 +574,8 @@ public class PlayerMovement : MonoBehaviour
         {
             wallJumpBlockTimer = wallJumpBlockTime;
             wallJumpControlTimer = wallJumpControlTime;
+            wallJumpAimLockTimer = wallJumpAimFacingLockTime;
+            aimFacingTimer = 0f;
 
             int jumpXDir = -wallDir;
 
@@ -820,7 +845,9 @@ public class PlayerMovement : MonoBehaviour
             Gizmos.color = Color.cyan;
             Gizmos.DrawRay(groundCheck.position, -slopeNormalPerp);
         }
+        Debug.Log($"Movement Speed {rb.linearVelocity}");
     }
 
+    
     #endregion
 }
