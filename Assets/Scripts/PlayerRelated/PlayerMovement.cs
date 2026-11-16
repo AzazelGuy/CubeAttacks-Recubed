@@ -184,6 +184,20 @@ public class PlayerMovement : MonoBehaviour
     float aimFacingTimer;
     int aimFacingDir;
 
+    [Header("Wall Slide (descida progressiva)")]
+[Tooltip("wallSlideSpeed vira a velocidade INICIAL; ela sobe até este pico")]
+[SerializeField] float wallSlideMaxSpeed = 7f;
+[Tooltip("Tempo (s) deslizando até chegar no pico")]
+[SerializeField] float wallSlideRampTime = 0.6f;
+
+[Header("Wall Slide Up")]
+[Tooltip("Gravidade ao subir colado na parede (1 = igual ao ar livre, menor = perde velocidade mais devagar)")]
+[SerializeField, Range(0f, 1f)] float wallSlideUpGravityMultiplier = 0.5f;
+
+float wallSlideTimer;
+float CurrentWallSlideLimit => Mathf.Lerp(wallSlideSpeed, wallSlideMaxSpeed,
+    Mathf.Clamp01(wallSlideTimer / Mathf.Max(0.01f, wallSlideRampTime)));
+
     [Header("Wall Jump correndo (bônus)")]
     [Tooltip("Multiplica a força HORIZONTAL do wall jump quando está correndo")]
     [SerializeField] float wallJumpRunHorizontalMultiplier = 1.25f;
@@ -386,7 +400,7 @@ public class PlayerMovement : MonoBehaviour
             coyoteTimer = coyoteTimeMax;
             currentJumpsRemaining = maxJumps; // recarrega os pulos ao tocar o chão
             fallTimer = 0f;
-
+wallSlideTimer = 0f;
             if (!Input.GetButtonDown("Jump"))
                 rb.gravityScale = groundGravity;
 
@@ -404,6 +418,7 @@ public class PlayerMovement : MonoBehaviour
         bool wantsToClimb = wallFree && wallClimbEnabled && yInput > 0 && hasHorizontalInput;
         bool wantsToStick = wallFree && wallStickEnabled && pressingIntoWall && !isMovingUpward;
         bool wantsToSlide = wallFree && pressingIntoWall && !isMovingUpward;
+        bool wantsToSlideUp = wallFree && pressingIntoWall && isMovingUpward;
 
         if (wantsToClimb)
         {
@@ -420,13 +435,19 @@ public class PlayerMovement : MonoBehaviour
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
         }
         else if (wantsToSlide)
-        {
-            // 3. Wall slide: segurando em direção à parede, desce devagar.
-            // O limite de velocidade é aplicado no FixedUpdate (LimitFallSpeed).
-            fallTimer = 0f;
-            isWallSliding = true;
-            rb.gravityScale = wallSlideGravity;
-        }
+{
+    fallTimer = 0f;
+    wallSlideTimer += Time.deltaTime;   // NOVO: a velocidade vai somando
+    isWallSliding = true;
+    rb.gravityScale = wallSlideGravity;
+}
+else if (wantsToSlideUp)                // NOVO
+{
+    // Subindo colado na parede: perde velocidade mais devagar
+    fallTimer = 0f;
+    wallSlideTimer = 0f;
+    rb.gravityScale = GravityToScale(JumpGravity) * wallSlideUpGravityMultiplier;
+}
         else
         {
             // 4. Ar livre
@@ -445,7 +466,7 @@ public class PlayerMovement : MonoBehaviour
                 rb.gravityScale = GravityToScale(JumpGravity) * multiplier;
             }
         }
-
+        if (!isWallSliding) wallSlideTimer = 0f;
         coyoteTimer -= Time.deltaTime;
 
         // Saiu da borda sem pular: gasta o "pulo do chão" quando o coyote acaba.
@@ -456,7 +477,7 @@ public class PlayerMovement : MonoBehaviour
 
     void LimitFallSpeed()
     {
-        float limit = isWallSliding ? wallSlideSpeed : maxFallSpeed;
+        float limit = isWallSliding ? CurrentWallSlideLimit : maxFallSpeed;
 
         if (rb.linearVelocity.y < -limit)
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, -limit);
@@ -481,6 +502,9 @@ public class PlayerMovement : MonoBehaviour
         float targetSpeed = CurrentMaxSpeed;
         bool onSlopeGround = isGrounded && isOnSlope;
 
+        bool pushingIntoWall = onWall && xInput != 0 && Mathf.Sign(xInput) == wallDir; //Conferir se o jogador tá batendo a cabeça na parede enquanto sobe a rampa
+        //O fato que precisa de uma condição DESSE GRAU DE ESPECIFICO, me deixa triste 
+
         // "Para frente" acompanha a superfície quando está em rampa
         Vector2 moveDirection = onSlopeGround ? -slopeNormalPerp : Vector2.right;
 
@@ -499,7 +523,7 @@ public class PlayerMovement : MonoBehaviour
             rate *= wallJumpAirControl;
         
 
-        bool idleOnSlope = onSlopeGround && xInput == 0;
+        bool idleOnSlope = onSlopeGround && (xInput == 0 || pushingIntoWall); //Agora não deve-se mover na parede e quicar, efetivamente parando, como devia
 
         // PARA NA RAMPA (padrão): freia ao longo da superfície, sem gravidade
         // e sem componente perpendicular (descarta a gravidade acumulada).
@@ -845,7 +869,6 @@ public class PlayerMovement : MonoBehaviour
             Gizmos.color = Color.cyan;
             Gizmos.DrawRay(groundCheck.position, -slopeNormalPerp);
         }
-        Debug.Log($"Movement Speed {rb.linearVelocity}");
     }
 
     

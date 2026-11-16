@@ -279,7 +279,7 @@ MonoBehaviour:
   groundGravity: 3
   fallGravityMultiplier: 1.8
   fallRampTime: 0.5
-  maxFallSpeed: 30
+  maxFallSpeed: 60
   jumpHeight: 5
   timeToApex: 0.38
   jumpCutMultiplier: 0.5
@@ -287,7 +287,7 @@ MonoBehaviour:
   jumpBufferTime: 0.1
   jumpBlockTime: 0.08
   groundCheck: {fileID: 70998617262262362}
-  groundDistance: 0.2
+  groundDistance: 0.8
   groundLayer:
     serializedVersion: 2
     m_Bits: 16448
@@ -305,8 +305,11 @@ MonoBehaviour:
   wallJumpVerticalMultiplier: 1.25
   wallJumpBlockTime: 0.2
   wallJumpControlTime: 0.2
-  wallJumpAirControl: 0.668
+  wallJumpAirControl: 0.7
   wallJumpAimFacingLockTime: 0.35
+  wallSlideMaxSpeed: 60
+  wallSlideRampTime: 0.6
+  wallSlideUpGravityMultiplier: 0.6
   wallJumpRunHorizontalMultiplier: 1.3
   wallJumpRunVerticalMultiplier: 1.2
   maxSlopeAngle: 45
