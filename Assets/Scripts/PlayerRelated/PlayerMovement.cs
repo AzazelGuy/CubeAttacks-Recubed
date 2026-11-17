@@ -445,6 +445,7 @@ else if (wantsToSlideUp)                // NOVO
 {
     // Subindo colado na parede: perde velocidade mais devagar
     fallTimer = 0f;
+    isWallSliding = true;
     wallSlideTimer = 0f;
     rb.gravityScale = GravityToScale(JumpGravity) * wallSlideUpGravityMultiplier;
 }
