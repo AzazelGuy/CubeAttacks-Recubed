@@ -25,13 +25,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6467608174165726115}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 38.51478, y: -9.986646, z: 1.9566238}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6467608174165726124
 MonoBehaviour:
@@ -64,7 +64,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8ed0ef94e3a4a224991a747174f59ae1, type: 2}
   upgradeDatabase: {fileID: 11400000, guid: dea17b0dec57240b2bdce319e7c3e263, type: 2}
   activeStageUpgrades: []
-  enableDebugUpgrades: 1
+  enableDebugUpgrades: 0
   debugTestUpgrades:
   - {fileID: 11400000, guid: f2721154ab535213a89cc261bd14e30f, type: 2}
   - {fileID: 11400000, guid: 86f961ae0433a3d91a4e8fff7861ffa5, type: 2}
