@@ -342,10 +342,17 @@ public class PlayerInGameDataHolder : MonoBehaviour
 
         if (healthFillImage != null)
         {
-            healthFillImage.materialForRendering.SetFloat("_FillAmount", displayedHealthRatio);
+            healthFillImage.fillAmount = displayedHealthRatio;
         }
 
-        if (healthAmntText != null) healthAmntText.text = $"{MathF.Ceiling(playerHealthCurr)}";
+        if (UIControllerInGame.Instance != null)
+        {
+            UIControllerInGame.Instance.SetHealthAmount(playerHealthCurr);
+        }
+        else if (healthAmntText != null)
+        {
+            healthAmntText.text = $"{MathF.Ceiling(playerHealthCurr)}";
+        }
     }
 
     #endregion

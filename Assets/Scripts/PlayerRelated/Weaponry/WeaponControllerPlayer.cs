@@ -393,6 +393,14 @@ private void Atirar(WeaponData arma)
     {
         gunsprite.sprite = PlayerInGameDataHolder.Instance.Arsenal[currentWeapon].WeaponImage;
     }
+
+    if (UIControllerInGame.Instance != null)
+        {
+            for(int i = 0; i < PlayerInGameDataHolder.Instance.Arsenal.Count; i++)
+            {
+                UIControllerInGame.Instance.UpdateImages(PlayerInGameDataHolder.Instance.Arsenal[i].WeaponImage, i);
+            }
+        }
 }
 
 }
