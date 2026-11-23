@@ -1,7 +1,9 @@
+using System;
+using System.Drawing;
 using TMPro;
-using UnityEngine.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class UIControllerInGame : MonoBehaviour
 {
@@ -10,12 +12,14 @@ public class UIControllerInGame : MonoBehaviour
     [SerializeField] private TextMeshProUGUI BulletAmount;
     [SerializeField] private TextMeshProUGUI WeaponName;
     [SerializeField] private Image fillImageHealth;
-    [SerializeField] private Image fillImageShield;
     
     [SerializeField] private TextMeshProUGUI TexthealthAmnt;
-    [SerializeField] private TextMeshProUGUI TextshieldAmnt;
-    [SerializeField] private Image[] hurtImage;
+    [SerializeField] private CanvasGroup hurtImage;
+    [Tooltip("A ordem do array afeta sim o sistema todo, fique atento")]
+    [SerializeField] private RectTransform[] WeaponPos;
+    [SerializeField] private Image[] WeaponImages;
 
+    private int weaponSlot = 0;
     private string weaponName;
     private int bulletsMax;
     private int bulletscurr;
@@ -31,6 +35,12 @@ public class UIControllerInGame : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
+        foreach(RectTransform s in WeaponPos)
+        {
+            WeaponImages[weaponSlot].rectTransform.position = s.position;
+            weaponSlot ++;
+        }
     }
     private void Update()
     {
@@ -42,30 +52,35 @@ public class UIControllerInGame : MonoBehaviour
             Instance = null;
             Destroy(gameObject);
         }
+
+        for(int i = 0; i <= WeaponPos.Length; i++)
+        {
+
+        }
+        foreach(var w in WeaponImages)
+        {
+            int desiredpos = weaponSlot % WeaponImages.Length;
+        }
     }
     public void SetHealthEffect(float currentAmnt, float maxAmnt)
     {
         float targetFill = currentAmnt / maxAmnt;
 
-        foreach (var item in hurtImage)
-        {
-
-            Color itemColor = item.color;
-            itemColor.a = 0.5f - (targetFill * 0.5f);
-            item.color = itemColor;
-        }
+        hurtImage.alpha = targetFill;
         
     }    
-    public void getWeaponInfo(string name, int bulletMax, int bulletcurr)
+    public void getWeaponInfo(string name = "None", int bulletMax = 0, int bulletcurr = 0)
     {
         weaponName = name;
         bulletsMax = bulletMax;
         bulletscurr = bulletcurr;
     }
+    public void SpinWheel(int index, int size)
+    {
+        int target = index % size;
+    }
 
     public Image Healthfill => fillImageHealth;
-    public Image Shieldfill => fillImageShield;
 
     public TextMeshProUGUI TextHealth => TexthealthAmnt;
-    public TextMeshProUGUI TextShield => TextshieldAmnt;
 }

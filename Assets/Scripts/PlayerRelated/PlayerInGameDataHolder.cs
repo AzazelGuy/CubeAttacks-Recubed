@@ -18,23 +18,18 @@ public class PlayerInGameDataHolder : MonoBehaviour
 
     [Header("Health & Shield State")]
     private float playerHealthCurr = 100.0f;
-    private float playerShieldCurr = 100.0f;
     private string nextSpawnID = null;
     private float playerHealthMax;
-    private float playerShieldMax;
     private bool setUp = false;
 
     [Header("UI References")]
     [SerializeField] private Image healthFillImage;
-    [SerializeField] private Image shieldFillImage;
     [SerializeField] private TextMeshProUGUI healthAmntText;
-    [SerializeField] private TextMeshProUGUI shieldAmntText;
 
     [Header("UI Game Feel")]
     [Tooltip("How fast the UI bar smoothly catches up to actual health.")]
     [SerializeField] private float fillLerpSpeed = 5.0f;
     private float displayedHealthRatio = 1.0f;
-    private float displayedShieldRatio = 1.0f;
 
     // PlayerInstance
     private GameObject PlayerIndex = null;
@@ -43,12 +38,6 @@ public class PlayerInGameDataHolder : MonoBehaviour
     [SerializeField] private float timeUntilRegen = 15f;
     [SerializeField] private float regenMult = 0.01f;
     private float timerUntilRegen;
-
-    [Header("Shield Regen")]
-    [SerializeField] private float shieldRegenDelay = 5f;
-    [SerializeField] private float shieldRegenMult = 0.01f;
-    [SerializeField] private float shieldRegenDelayMultiplierWhenEmpty = 2f;
-    private float shieldRegenTimer;
 
     [Header("Weapon Ammo Tracking")]
     public List<WeaponData> Arsenal;
@@ -74,7 +63,6 @@ public class PlayerInGameDataHolder : MonoBehaviour
             DontDestroyOnLoad(gameObject);
 
             playerHealthMax = playerData != null ? playerData.playerHealthMax : 100f;
-            playerShieldMax = playerData != null ? playerData.playerShieldMax : 100f;
 
             // --- DEBUG OVERRIDE CHECK ---
             if (enableDebugUpgrades)
@@ -104,9 +92,8 @@ public class PlayerInGameDataHolder : MonoBehaviour
 
         if (playerData != null)
         {
-            SetUpVariables(playerHealthMax, playerShieldMax);
+            SetUpVariables(playerHealthMax);
             displayedHealthRatio = playerHealthCurr / playerHealthMax;
-            displayedShieldRatio = playerShieldCurr / playerShieldMax;
         }
 
         UpdateHealthUI();
@@ -117,10 +104,8 @@ public class PlayerInGameDataHolder : MonoBehaviour
         if (PauseMenuActions.instance != null && PauseMenuActions.instance.Paused) return;
 
         timerUntilRegen -= Time.deltaTime;
-        shieldRegenTimer -= Time.deltaTime;
 
         playerHealthCurr = Mathf.Clamp(playerHealthCurr, 0f, playerHealthMax);
-        playerShieldCurr = Mathf.Clamp(playerShieldCurr, 0f, playerShieldMax);
 
         // Health regeneration
         if (timerUntilRegen <= 0f && playerHealthCurr < playerHealthMax)
@@ -129,16 +114,6 @@ public class PlayerInGameDataHolder : MonoBehaviour
             if (playerHealthCurr >= playerHealthMax - 0.5f)
             {
                 playerHealthCurr = playerHealthMax;
-            }
-        }
-
-        // Shield regeneration
-        if (shieldRegenTimer <= 0f && playerShieldCurr < playerShieldMax)
-        {
-            playerShieldCurr = Mathf.Lerp(playerShieldCurr, playerShieldMax, shieldRegenMult);
-            if (playerShieldCurr >= playerShieldMax - 0.5f)
-            {
-                playerShieldCurr = playerShieldMax;
             }
         }
 
@@ -267,7 +242,6 @@ public class PlayerInGameDataHolder : MonoBehaviour
                 case UpgradeSystemDataSO.UpgradeType.StatModifier:
                     if (movement != null) movement.ApplySpeedUpgrade(upgrade.bonusSpeed, upgrade.speedMultiplier, upgrade.desacelerationMultipliyer);
                     playerHealthMax = playerData.playerHealthMax + upgrade.bonusHealth;
-                    playerShieldMax = playerData.playerShieldMax + upgrade.bonusShield;
                     break;
 
                 case UpgradeSystemDataSO.UpgradeType.MovementMechanic:
@@ -304,19 +278,16 @@ public class PlayerInGameDataHolder : MonoBehaviour
     public void ResetTimer()
     {
         timerUntilRegen = timeUntilRegen;
-        shieldRegenTimer = shieldRegenDelay;
     }
 
-    public void SetUpVariables(float maxHealth, float maxShield)
+    public void SetUpVariables(float maxHealth)
     {
         if (setUp) return;
 
         playerHealthCurr = maxHealth;
-        playerShieldCurr = maxShield;
         setUp = true;
 
         if (maxHealth > 0) displayedHealthRatio = playerHealthCurr / maxHealth;
-        if (maxShield > 0) displayedShieldRatio = playerShieldCurr / maxShield;
 
         UpdateHealthUI();
     }
@@ -335,21 +306,9 @@ public class PlayerInGameDataHolder : MonoBehaviour
     {
         ResetTimer();
 
-        if (playerShieldCurr > 0f)
-        {
-            float shieldAbsorbed = Mathf.Min(playerShieldCurr, damage);
-            playerShieldCurr -= shieldAbsorbed;
-            damage -= shieldAbsorbed;
-        }
-
         if (damage > 0f)
         {
             playerHealthCurr -= damage;
-        }
-
-        if (playerShieldCurr <= 0f)
-        {
-            shieldRegenTimer = shieldRegenDelay * shieldRegenDelayMultiplierWhenEmpty;
         }
     }
 
@@ -362,9 +321,7 @@ public class PlayerInGameDataHolder : MonoBehaviour
         if (UIControllerInGame.Instance != null)
         {
             healthFillImage = UIControllerInGame.Instance.Healthfill;
-            shieldFillImage = UIControllerInGame.Instance.Shieldfill;
             healthAmntText = UIControllerInGame.Instance.TextHealth;
-            shieldAmntText = UIControllerInGame.Instance.TextShield;
         }
     }
 
@@ -373,10 +330,8 @@ public class PlayerInGameDataHolder : MonoBehaviour
         if (playerData == null) return;
 
         float targetHealthRatio = playerHealthCurr / playerHealthMax;
-        float targetShieldRatio = playerShieldCurr / playerShieldMax;
 
         displayedHealthRatio = Mathf.Lerp(displayedHealthRatio, targetHealthRatio, Time.deltaTime * fillLerpSpeed);
-        displayedShieldRatio = Mathf.Lerp(displayedShieldRatio, targetShieldRatio, Time.deltaTime * fillLerpSpeed);
 
         UpdateHealthUI();
     }
@@ -390,13 +345,7 @@ public class PlayerInGameDataHolder : MonoBehaviour
             healthFillImage.materialForRendering.SetFloat("_FillAmount", displayedHealthRatio);
         }
 
-        if (shieldFillImage != null)
-        {
-            shieldFillImage.materialForRendering.SetFloat("_FillAmount", displayedShieldRatio);
-        }
-
         if (healthAmntText != null) healthAmntText.text = $"{MathF.Ceiling(playerHealthCurr)}";
-        if (shieldAmntText != null) shieldAmntText.text = $"{MathF.Ceiling(playerShieldCurr)}";
     }
 
     #endregion
@@ -460,8 +409,6 @@ public class PlayerInGameDataHolder : MonoBehaviour
     public string SpawnId => nextSpawnID;
     public float Health => playerHealthCurr;
     public float MaxHealth => playerData != null ? playerHealthMax : 100f;
-    public float Shield => playerShieldCurr;
-    public float MaxShield => playerData != null ? playerShieldMax : 100f;
     public GameObject currentPlayer => EnsurePlayerInstance();
     public PlayerData playerCurrData => playerData;
     public UpgradeSystemDataBaseSO GetUpgradeDataBase => upgradeDatabase;

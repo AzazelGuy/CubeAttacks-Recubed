@@ -96,7 +96,6 @@ public class PlayerCharacterBase : MonoBehaviour
         skidDeceleration = playerData.skidDeceleration;
         movementSpeedBase = playerData.movementSpeedBase;
         playerHealthMax = playerData.playerHealthMax;
-        playerShieldMax = playerData.playerShieldMax;
 
         if (playerVisualData == null)
         {
@@ -114,12 +113,9 @@ public class PlayerCharacterBase : MonoBehaviour
     #region Combat Logic
     public virtual void OnPlayerHit(float recievedDamage)
     {
-        if (damageEffectHealth != null && damageEffectShield != null) 
-        { 
-            if (PlayerInGameDataHolder.Instance.Shield > 0)
-            Instantiate(damageEffectShield, transform);
-            else Instantiate(damageEffectHealth, transform);
-            
+        if (damageEffectHealth != null) 
+        {
+            Instantiate(damageEffectHealth, transform);  
         }
 
         if (PlayerInGameDataHolder.Instance.HasUpgradeEquipped("up_Pyromaniac"))

@@ -50,9 +50,6 @@ public class PlayerData : ScriptableObject
     //Health Related
     public float playerHealthMax = 100.0f;
 
-    //Health Related
-    public float playerShieldMax = 100.0f;
-
     public PlayerVisualData myVisualData;
 
     public GameObject Prefab;

@@ -366,11 +366,13 @@ private void Atirar(WeaponData arma)
     if (Input.GetKeyDown(KeyCode.E))
     {
         currentWeapon = (currentWeapon + 1) % PlayerInGameDataHolder.Instance.Arsenal.Count;
+
     }
     // Cycle Backward (Q)
     else if (Input.GetKeyDown(KeyCode.Q))
     {
         currentWeapon = (currentWeapon - 1 + PlayerInGameDataHolder.Instance.Arsenal.Count) % PlayerInGameDataHolder.Instance.Arsenal.Count;
+
     }
 
     // Only run holster/sprite updates if the weapon actually changed
@@ -378,6 +380,7 @@ private void Atirar(WeaponData arma)
     {
         UpdateWeaponAppearance();
         ResetarAlerta(true); // Draw the newly equipped weapon immediately
+        UIControllerInGame.Instance.SpinWheel(currentWeapon, PlayerInGameDataHolder.Instance.Arsenal.Count);
     }
 }
 
