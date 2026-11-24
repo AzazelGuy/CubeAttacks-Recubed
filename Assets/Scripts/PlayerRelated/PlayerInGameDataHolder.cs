@@ -322,6 +322,7 @@ public class PlayerInGameDataHolder : MonoBehaviour
         {
             healthFillImage = UIControllerInGame.Instance.Healthfill;
             healthAmntText = UIControllerInGame.Instance.TextHealth;
+            UIControllerInGame.Instance.setIconName(playerData.HudPhoto, playerData.playerName);
         }
     }
 

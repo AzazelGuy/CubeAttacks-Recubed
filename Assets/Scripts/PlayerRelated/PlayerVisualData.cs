@@ -8,5 +8,4 @@ public class PlayerVisualData : ScriptableObject
 {
     public Sprite playerHudIcon;
 
-    [Range(0,10)] public ParticleSystem[] particles;
 }

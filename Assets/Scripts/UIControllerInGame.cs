@@ -6,29 +6,37 @@ using UnityEngine.UI;
 public class UIControllerInGame : MonoBehaviour
 {
     public static UIControllerInGame Instance;
-    
+
+    [Header("Weapon References")]
     [SerializeField] private TextMeshProUGUI BulletAmount;
     [SerializeField] private Image fillImageBullet;
     [SerializeField] private Image fillImageBulletGhost;
     [SerializeField] private float fillGhostHoldDuration = 0.5f;
     [SerializeField] private float fillGhostCatchupSpeed = 1f;
     [SerializeField] private TextMeshProUGUI WeaponName;
-    [SerializeField] private Image fillImageHealth;
-    
-    [SerializeField] private TextMeshProUGUI TexthealthAmnt;
-    private Image fillImageHealthGhost;
-    private float healthFillGhostTimer;
-    private float bulletFillGhostTimer;
-    private float lastHealthTargetFill;
-    private float lastAmmoTargetFill;
-    private bool healthTargetInitialized;
-    private bool ammoTargetInitialized;
-    [SerializeField] private CanvasGroup hurtImage;
-    [Tooltip("A ordem do array afeta sim o sistema todo, fique atento")]
     [SerializeField] private RectTransform[] WeaponPos;
     [SerializeField] private Image[] WeaponImages;
     [SerializeField] private Sprite FallBackNoWeapon;
 
+
+    private bool ammoTargetInitialized;
+    private float lastAmmoTargetFill;
+
+    private float bulletFillGhostTimer;
+
+    [Header("Health References")]
+    [SerializeField] private Image fillImageHealth;
+    [SerializeField] private TextMeshProUGUI TexthealthAmnt;
+    private Image fillImageHealthGhost;
+    private float healthFillGhostTimer;
+    private float lastHealthTargetFill;
+    private bool healthTargetInitialized;
+    [SerializeField] private CanvasGroup hurtImage;
+
+    [Header("Other References")]
+    [SerializeField] private Image playerIcon;
+    [SerializeField] private TextMeshProUGUI playerName;
+    [SerializeField] private Image staminaBar;
     private int weaponSlot = 0;
     private string weaponName;
     private int bulletsMax;
@@ -205,7 +213,13 @@ public class UIControllerInGame : MonoBehaviour
         WeaponImages[index].sprite = desiredImage;
         return;
     }
-    public Image Healthfill => fillImageHealth;
+    
+    public void setIconName(Sprite icon, string name)
+    {
+        playerIcon.sprite = icon;
+        playerName.text = name;
+    }
 
+    public Image Healthfill => fillImageHealth;
     public TextMeshProUGUI TextHealth => TexthealthAmnt;
 }

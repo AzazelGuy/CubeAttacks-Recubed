@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 57098f0fbeef6db49b5e58405142f53b, type: 3}
   m_Name: CubertData
   m_EditorClassIdentifier: 
-  playerName: Cubert
+  playerName: Cuberto
   id: 0
   movementType: 0
   attackType: 0
@@ -26,6 +26,5 @@ MonoBehaviour:
   skidDeceleration: 0.4
   movementSpeedBase: 0
   playerHealthMax: 100
-  playerShieldMax: 100
-  myVisualData: {fileID: 11400000, guid: 4d470c39d26c51e4e92ae64b412c8094, type: 2}
   Prefab: {fileID: 70998617743984490, guid: f5976a6ea4412094d8e67d091d418aee, type: 3}
+  HudPhoto: {fileID: 21300000, guid: 192c768e6bf4de540b0eda61ccd550a0, type: 3}

@@ -62,8 +62,6 @@ public class PlayerCharacterBase : MonoBehaviour
     [Header("Visual do jogador")]
     protected Sprite playerHudIcon;
 
-    [Range(0, 10)]
-    protected ParticleSystem[] particles;
     #endregion
 
     // -------------------------------------------------------------------------
@@ -96,14 +94,9 @@ public class PlayerCharacterBase : MonoBehaviour
         skidDeceleration = playerData.skidDeceleration;
         movementSpeedBase = playerData.movementSpeedBase;
         playerHealthMax = playerData.playerHealthMax;
+        playerHudIcon = playerData.HudPhoto;
 
-        if (playerVisualData == null)
-        {
-            return;
-        }
-
-        playerHudIcon = playerVisualData.playerHudIcon;
-        particles = playerVisualData.particles;
+        
     }
     #endregion
 
