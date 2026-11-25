@@ -7,6 +7,8 @@ public class WeaponControllerPlayer : MonoBehaviour
     #region Inicializacaoo de Variaveis
     private float xDir, yDir;
 
+    Controle controle;
+
     [Header("Gun Configurations")]
     public Transform gunPivot;
     public Transform canoDaArma; // Crie um Empty Object na ponta da arma e arraste aqui
@@ -44,6 +46,10 @@ public class WeaponControllerPlayer : MonoBehaviour
     public GameObject rastroPrefab; // Crie um Prefab que contenha APENAS o componente LineRenderer
     #endregion
 
+    void Awake() => controle = new Controle();
+    void OnEnable() => controle.Gameplay.Enable();
+    void OnDisable() => controle.Gameplay.Disable();
+    void OnDestroy() => controle.Dispose();
     private void Start()
 {
     // GUARD 1: If player doesn't use weapons, shut down this script's visual features
@@ -69,8 +75,8 @@ public class WeaponControllerPlayer : MonoBehaviour
 {
     if (PauseMenuActions.instance != null && PauseMenuActions.instance.Paused) return;
 
-    xDir = Input.GetAxisRaw("Horizontal");
-    yDir = Input.GetAxisRaw("Vertical");
+    xDir = controle.Gameplay._8DirectionAim.ReadValue<Vector2>().x;
+    yDir = controle.Gameplay._8DirectionAim.ReadValue<Vector2>().y;
 
     GunRotation(xDir, yDir);
     handleFire();
@@ -86,11 +92,6 @@ public class WeaponControllerPlayer : MonoBehaviour
             PlayerInGameDataHolder.Instance.Arsenal[currentWeapon].BulletsMax, 
             currentAmmo
         );
-    }
-
-    if (Input.GetKeyDown(KeyCode.Tab))
-    {
-        currAim = (currAim == FireMode._8directional) ? FireMode.mouseAim : FireMode._8directional;
     }
 }
 
@@ -163,7 +164,7 @@ public class WeaponControllerPlayer : MonoBehaviour
                 break;
 
             case FireMode.mouseAim:
-                Vector3 mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                Vector3 mouseWorldPosition = Camera.main.ScreenToWorldPoint(controle.Gameplay.GunAimMouse.ReadValue<Vector2>());
                 mouseWorldPosition.z = 0f;
 
                 Vector2 mdirection = mouseWorldPosition - gunPivot.position;
@@ -207,8 +208,8 @@ private void handleFire()
 
     WeaponData armaAtual = PlayerInGameDataHolder.Instance.Arsenal[currentWeapon];
     bool querAtirar = (currAim == FireMode._8directional) 
-        ? (armaAtual.isAutomatic ? Input.GetKey(KeyCode.H) : Input.GetKeyDown(KeyCode.H))
-        : (armaAtual.isAutomatic ? Input.GetKey(KeyCode.Mouse0) : Input.GetKeyDown(KeyCode.Mouse0));
+        ? (armaAtual.isAutomatic ? controle.Gameplay.Shoot.IsPressed() : controle.Gameplay.Shoot.WasPressedThisFrame())
+        : (armaAtual.isAutomatic ? controle.Gameplay.Shoot.IsPressed() : controle.Gameplay.Shoot.WasPressedThisFrame());
 
         if (querAtirar)
         {
@@ -232,14 +233,6 @@ private void handleFire()
 private void Atirar(WeaponData arma)
 {
     ResetarAlerta(true);
-
-    // Recoil Pushback
-    if (playerMovement != null && arma.recoilStrenght > 0)
-    {
-        Vector2 direcaoEmpurrao = -canoDaArma.right;
-        float intensidadeForca = arma.recoilStrenght * 0.3f;
-        playerMovement.AplicarEmpurraoRecuo(direcaoEmpurrao * intensidadeForca, 0.05f);
-    }
 
         // PLAY ANIMATION
         if (playerAnimExtras != null && knockBackControllName != null)
@@ -349,7 +342,7 @@ private void Atirar(WeaponData arma)
     {
         if (currAim == FireMode.mouseAim)
         {
-            float dx = Camera.main.ScreenToWorldPoint(Input.mousePosition).x - gunPivot.position.x;
+            float dx = Camera.main.ScreenToWorldPoint(controle.Gameplay.GunAimMouse.ReadValue<Vector2>()).x - gunPivot.position.x;
             if (Mathf.Abs(dx) < 0.05f) return 0; // deadzone pra não ficar tremendo
             return dx > 0 ? 1 : -1;
         }
@@ -363,13 +356,13 @@ private void Atirar(WeaponData arma)
     int previousWeapon = currentWeapon;
 
     // Cycle Forward (E)
-    if (Input.GetKeyDown(KeyCode.E))
+    if (controle.Gameplay.NxtWeapon.WasPressedThisFrame())
     {
         currentWeapon = (currentWeapon + 1) % PlayerInGameDataHolder.Instance.Arsenal.Count;
 
     }
     // Cycle Backward (Q)
-    else if (Input.GetKeyDown(KeyCode.Q))
+    else if (controle.Gameplay.PrevWeapon.WasPressedThisFrame())
     {
         currentWeapon = (currentWeapon - 1 + PlayerInGameDataHolder.Instance.Arsenal.Count) % PlayerInGameDataHolder.Instance.Arsenal.Count;
 
