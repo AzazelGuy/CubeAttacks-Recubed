@@ -93,7 +93,7 @@ public partial class @Controle: IInputActionCollection2, IDisposable
             ""id"": ""56724ef6-2059-4661-aae3-b7db4ca868df"",
             ""actions"": [
                 {
-                    ""name"": ""HorizontalMovent"",
+                    ""name"": ""Move"",
                     ""type"": ""Value"",
                     ""id"": ""e458e0fd-bba1-431c-ba7c-6f9a9933d797"",
                     ""expectedControlType"": ""Axis"",
@@ -123,23 +123,63 @@ public partial class @Controle: IInputActionCollection2, IDisposable
                     ""priority"": 0
                 },
                 {
-                    ""name"": ""WeaponChange"",
-                    ""type"": ""Value"",
-                    ""id"": ""c5fcfb6f-442b-4967-b0bd-f43a46060043"",
-                    ""expectedControlType"": ""Axis"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": true,
-                    ""priority"": 0
-                },
-                {
-                    ""name"": ""GunAim"",
+                    ""name"": ""GunAimMouse"",
                     ""type"": ""Value"",
                     ""id"": ""640c6374-aba7-4e19-8300-0cd665219f8a"",
                     ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""FallThrough"",
+                    ""type"": ""Button"",
+                    ""id"": ""6bc7e52e-f4b3-4261-8f7c-173c2ed179e9"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""8DirectionAim"",
+                    ""type"": ""Value"",
+                    ""id"": ""473f72d5-729f-4b02-8699-61a1817a65a7"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""Run"",
+                    ""type"": ""Button"",
+                    ""id"": ""fa5ef8f1-b67e-4fdb-a87a-68624ddd341e"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""PrevWeapon"",
+                    ""type"": ""Button"",
+                    ""id"": ""3fc49ea2-23e3-4d13-8801-966df0aad2b2"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""NxtWeapon"",
+                    ""type"": ""Button"",
+                    ""id"": ""062b8c1d-5833-4848-bfa0-1da34ee8f5f8"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
                     ""priority"": 0
                 }
             ],
@@ -151,7 +191,7 @@ public partial class @Controle: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""HorizontalMovent"",
+                    ""action"": ""Move"",
                     ""isComposite"": true,
                     ""isPartOfComposite"": false
                 },
@@ -162,7 +202,7 @@ public partial class @Controle: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""HorizontalMovent"",
+                    ""action"": ""Move"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 },
@@ -173,7 +213,7 @@ public partial class @Controle: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""HorizontalMovent"",
+                    ""action"": ""Move"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 },
@@ -184,18 +224,18 @@ public partial class @Controle: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""HorizontalMovent"",
+                    ""action"": ""Move"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
                     ""id"": ""092b87fa-f196-41e2-b825-bfe62e83f8e6"",
-                    ""path"": ""<Joystick>/stick/x"",
+                    ""path"": ""<Gamepad>/leftStick/x"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""HorizontalMovent"",
+                    ""action"": ""Move"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -212,8 +252,8 @@ public partial class @Controle: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""0072011e-2b50-405a-8be5-1378fd39c9c4"",
-                    ""path"": ""<Keyboard>/upArrow"",
+                    ""id"": ""53681c92-8839-4fd2-8408-dedaaaa59c93"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -223,8 +263,8 @@ public partial class @Controle: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""53681c92-8839-4fd2-8408-dedaaaa59c93"",
-                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""id"": ""b3696d1c-28f6-4251-a348-13518f148baa"",
+                    ""path"": ""<Keyboard>/space"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -255,90 +295,123 @@ public partial class @Controle: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 },
                 {
-                    ""name"": ""1D Axis Keyboard"",
-                    ""id"": ""8a3b8042-f602-4bd6-ab9f-529600d005da"",
-                    ""path"": ""1DAxis"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""WeaponChange"",
-                    ""isComposite"": true,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": ""negative"",
-                    ""id"": ""2350758f-f6d3-4ca6-84ba-f4c164a8285b"",
-                    ""path"": ""<Keyboard>/q"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""WeaponChange"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""positive"",
-                    ""id"": ""1e69d407-d852-48fe-aeca-8f2c0cf68cdf"",
-                    ""path"": ""<Keyboard>/e"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""WeaponChange"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""1D Axis Controller"",
-                    ""id"": ""71070001-bed4-4f11-b8f6-d02c02d7b0ee"",
-                    ""path"": ""1DAxis"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""WeaponChange"",
-                    ""isComposite"": true,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": ""negative"",
-                    ""id"": ""b6986398-7405-4dfb-a2dd-0cf9a729e709"",
-                    ""path"": ""<Gamepad>/leftShoulder"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""WeaponChange"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""positive"",
-                    ""id"": ""bb124042-fca9-4922-b6da-5ee33a5c32bb"",
-                    ""path"": ""<Gamepad>/rightShoulder"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""WeaponChange"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""73bb30f3-0d40-488a-83c9-ea3aee988193"",
-                    ""path"": ""<Gamepad>/rightStick"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""GunAim"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
                     ""name"": """",
                     ""id"": ""fa572028-aa10-4e09-b199-2f41867e9fff"",
                     ""path"": ""<Mouse>/position"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""GunAim"",
+                    ""action"": ""GunAimMouse"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""5e4f0dc1-a427-4f7d-a740-2e3d4ac21d05"",
+                    ""path"": ""<Keyboard>/s"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""FallThrough"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8320d2b0-8e1c-4749-920e-2119d93ae05a"",
+                    ""path"": ""<Gamepad>/dpad/down"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""FallThrough"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""794f2684-b012-4cfd-a663-02235183c739"",
+                    ""path"": ""<Gamepad>/leftStick/down"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""FallThrough"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""4eb7047c-95f1-4beb-882e-bfe5756b2f3e"",
+                    ""path"": ""<Gamepad>/rightStick"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""8DirectionAim"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""eb6a8ebd-4819-40d7-9048-4376a6d9610c"",
+                    ""path"": ""<Keyboard>/leftShift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Run"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""db07729f-f860-45da-b817-78ec1759fd36"",
+                    ""path"": ""<Gamepad>/leftTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Run"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b4596186-b24b-4ab5-ada2-31fe076edc64"",
+                    ""path"": ""<Keyboard>/q"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""PrevWeapon"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d89f7d62-c9a5-4e9e-8732-ebdcbf040246"",
+                    ""path"": ""<Gamepad>/leftShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""PrevWeapon"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""109d1256-fa57-482a-af6d-8bca0b74ab5a"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""NxtWeapon"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7ce18cef-dc69-4c61-96ab-9383e1340f5c"",
+                    ""path"": ""<Gamepad>/rightShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""NxtWeapon"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -731,11 +804,15 @@ public partial class @Controle: IInputActionCollection2, IDisposable
 }");
         // Gameplay
         m_Gameplay = asset.FindActionMap("Gameplay", throwIfNotFound: true);
-        m_Gameplay_HorizontalMovent = m_Gameplay.FindAction("HorizontalMovent", throwIfNotFound: true);
+        m_Gameplay_Move = m_Gameplay.FindAction("Move", throwIfNotFound: true);
         m_Gameplay_Jump = m_Gameplay.FindAction("Jump", throwIfNotFound: true);
         m_Gameplay_Shoot = m_Gameplay.FindAction("Shoot", throwIfNotFound: true);
-        m_Gameplay_WeaponChange = m_Gameplay.FindAction("WeaponChange", throwIfNotFound: true);
-        m_Gameplay_GunAim = m_Gameplay.FindAction("GunAim", throwIfNotFound: true);
+        m_Gameplay_GunAimMouse = m_Gameplay.FindAction("GunAimMouse", throwIfNotFound: true);
+        m_Gameplay_FallThrough = m_Gameplay.FindAction("FallThrough", throwIfNotFound: true);
+        m_Gameplay__8DirectionAim = m_Gameplay.FindAction("8DirectionAim", throwIfNotFound: true);
+        m_Gameplay_Run = m_Gameplay.FindAction("Run", throwIfNotFound: true);
+        m_Gameplay_PrevWeapon = m_Gameplay.FindAction("PrevWeapon", throwIfNotFound: true);
+        m_Gameplay_NxtWeapon = m_Gameplay.FindAction("NxtWeapon", throwIfNotFound: true);
         // Menus
         m_Menus = asset.FindActionMap("Menus", throwIfNotFound: true);
         m_Menus_Pause = m_Menus.FindAction("Pause", throwIfNotFound: true);
@@ -830,11 +907,15 @@ public partial class @Controle: IInputActionCollection2, IDisposable
     // Gameplay
     private readonly InputActionMap m_Gameplay;
     private List<IGameplayActions> m_GameplayActionsCallbackInterfaces = new List<IGameplayActions>();
-    private readonly InputAction m_Gameplay_HorizontalMovent;
+    private readonly InputAction m_Gameplay_Move;
     private readonly InputAction m_Gameplay_Jump;
     private readonly InputAction m_Gameplay_Shoot;
-    private readonly InputAction m_Gameplay_WeaponChange;
-    private readonly InputAction m_Gameplay_GunAim;
+    private readonly InputAction m_Gameplay_GunAimMouse;
+    private readonly InputAction m_Gameplay_FallThrough;
+    private readonly InputAction m_Gameplay__8DirectionAim;
+    private readonly InputAction m_Gameplay_Run;
+    private readonly InputAction m_Gameplay_PrevWeapon;
+    private readonly InputAction m_Gameplay_NxtWeapon;
     /// <summary>
     /// Provides access to input actions defined in input action map "Gameplay".
     /// </summary>
@@ -847,9 +928,9 @@ public partial class @Controle: IInputActionCollection2, IDisposable
         /// </summary>
         public GameplayActions(@Controle wrapper) { m_Wrapper = wrapper; }
         /// <summary>
-        /// Provides access to the underlying input action "Gameplay/HorizontalMovent".
+        /// Provides access to the underlying input action "Gameplay/Move".
         /// </summary>
-        public InputAction @HorizontalMovent => m_Wrapper.m_Gameplay_HorizontalMovent;
+        public InputAction @Move => m_Wrapper.m_Gameplay_Move;
         /// <summary>
         /// Provides access to the underlying input action "Gameplay/Jump".
         /// </summary>
@@ -859,13 +940,29 @@ public partial class @Controle: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @Shoot => m_Wrapper.m_Gameplay_Shoot;
         /// <summary>
-        /// Provides access to the underlying input action "Gameplay/WeaponChange".
+        /// Provides access to the underlying input action "Gameplay/GunAimMouse".
         /// </summary>
-        public InputAction @WeaponChange => m_Wrapper.m_Gameplay_WeaponChange;
+        public InputAction @GunAimMouse => m_Wrapper.m_Gameplay_GunAimMouse;
         /// <summary>
-        /// Provides access to the underlying input action "Gameplay/GunAim".
+        /// Provides access to the underlying input action "Gameplay/FallThrough".
         /// </summary>
-        public InputAction @GunAim => m_Wrapper.m_Gameplay_GunAim;
+        public InputAction @FallThrough => m_Wrapper.m_Gameplay_FallThrough;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/_8DirectionAim".
+        /// </summary>
+        public InputAction @_8DirectionAim => m_Wrapper.m_Gameplay__8DirectionAim;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/Run".
+        /// </summary>
+        public InputAction @Run => m_Wrapper.m_Gameplay_Run;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/PrevWeapon".
+        /// </summary>
+        public InputAction @PrevWeapon => m_Wrapper.m_Gameplay_PrevWeapon;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/NxtWeapon".
+        /// </summary>
+        public InputAction @NxtWeapon => m_Wrapper.m_Gameplay_NxtWeapon;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -892,21 +989,33 @@ public partial class @Controle: IInputActionCollection2, IDisposable
         {
             if (instance == null || m_Wrapper.m_GameplayActionsCallbackInterfaces.Contains(instance)) return;
             m_Wrapper.m_GameplayActionsCallbackInterfaces.Add(instance);
-            @HorizontalMovent.started += instance.OnHorizontalMovent;
-            @HorizontalMovent.performed += instance.OnHorizontalMovent;
-            @HorizontalMovent.canceled += instance.OnHorizontalMovent;
+            @Move.started += instance.OnMove;
+            @Move.performed += instance.OnMove;
+            @Move.canceled += instance.OnMove;
             @Jump.started += instance.OnJump;
             @Jump.performed += instance.OnJump;
             @Jump.canceled += instance.OnJump;
             @Shoot.started += instance.OnShoot;
             @Shoot.performed += instance.OnShoot;
             @Shoot.canceled += instance.OnShoot;
-            @WeaponChange.started += instance.OnWeaponChange;
-            @WeaponChange.performed += instance.OnWeaponChange;
-            @WeaponChange.canceled += instance.OnWeaponChange;
-            @GunAim.started += instance.OnGunAim;
-            @GunAim.performed += instance.OnGunAim;
-            @GunAim.canceled += instance.OnGunAim;
+            @GunAimMouse.started += instance.OnGunAimMouse;
+            @GunAimMouse.performed += instance.OnGunAimMouse;
+            @GunAimMouse.canceled += instance.OnGunAimMouse;
+            @FallThrough.started += instance.OnFallThrough;
+            @FallThrough.performed += instance.OnFallThrough;
+            @FallThrough.canceled += instance.OnFallThrough;
+            @_8DirectionAim.started += instance.On_8DirectionAim;
+            @_8DirectionAim.performed += instance.On_8DirectionAim;
+            @_8DirectionAim.canceled += instance.On_8DirectionAim;
+            @Run.started += instance.OnRun;
+            @Run.performed += instance.OnRun;
+            @Run.canceled += instance.OnRun;
+            @PrevWeapon.started += instance.OnPrevWeapon;
+            @PrevWeapon.performed += instance.OnPrevWeapon;
+            @PrevWeapon.canceled += instance.OnPrevWeapon;
+            @NxtWeapon.started += instance.OnNxtWeapon;
+            @NxtWeapon.performed += instance.OnNxtWeapon;
+            @NxtWeapon.canceled += instance.OnNxtWeapon;
         }
 
         /// <summary>
@@ -918,21 +1027,33 @@ public partial class @Controle: IInputActionCollection2, IDisposable
         /// <seealso cref="GameplayActions" />
         private void UnregisterCallbacks(IGameplayActions instance)
         {
-            @HorizontalMovent.started -= instance.OnHorizontalMovent;
-            @HorizontalMovent.performed -= instance.OnHorizontalMovent;
-            @HorizontalMovent.canceled -= instance.OnHorizontalMovent;
+            @Move.started -= instance.OnMove;
+            @Move.performed -= instance.OnMove;
+            @Move.canceled -= instance.OnMove;
             @Jump.started -= instance.OnJump;
             @Jump.performed -= instance.OnJump;
             @Jump.canceled -= instance.OnJump;
             @Shoot.started -= instance.OnShoot;
             @Shoot.performed -= instance.OnShoot;
             @Shoot.canceled -= instance.OnShoot;
-            @WeaponChange.started -= instance.OnWeaponChange;
-            @WeaponChange.performed -= instance.OnWeaponChange;
-            @WeaponChange.canceled -= instance.OnWeaponChange;
-            @GunAim.started -= instance.OnGunAim;
-            @GunAim.performed -= instance.OnGunAim;
-            @GunAim.canceled -= instance.OnGunAim;
+            @GunAimMouse.started -= instance.OnGunAimMouse;
+            @GunAimMouse.performed -= instance.OnGunAimMouse;
+            @GunAimMouse.canceled -= instance.OnGunAimMouse;
+            @FallThrough.started -= instance.OnFallThrough;
+            @FallThrough.performed -= instance.OnFallThrough;
+            @FallThrough.canceled -= instance.OnFallThrough;
+            @_8DirectionAim.started -= instance.On_8DirectionAim;
+            @_8DirectionAim.performed -= instance.On_8DirectionAim;
+            @_8DirectionAim.canceled -= instance.On_8DirectionAim;
+            @Run.started -= instance.OnRun;
+            @Run.performed -= instance.OnRun;
+            @Run.canceled -= instance.OnRun;
+            @PrevWeapon.started -= instance.OnPrevWeapon;
+            @PrevWeapon.performed -= instance.OnPrevWeapon;
+            @PrevWeapon.canceled -= instance.OnPrevWeapon;
+            @NxtWeapon.started -= instance.OnNxtWeapon;
+            @NxtWeapon.performed -= instance.OnNxtWeapon;
+            @NxtWeapon.canceled -= instance.OnNxtWeapon;
         }
 
         /// <summary>
@@ -1232,12 +1353,12 @@ public partial class @Controle: IInputActionCollection2, IDisposable
     public interface IGameplayActions
     {
         /// <summary>
-        /// Method invoked when associated input action "HorizontalMovent" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "Move" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnHorizontalMovent(InputAction.CallbackContext context);
+        void OnMove(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "Jump" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
@@ -1253,19 +1374,47 @@ public partial class @Controle: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnShoot(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "WeaponChange" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "GunAimMouse" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnWeaponChange(InputAction.CallbackContext context);
+        void OnGunAimMouse(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "GunAim" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "FallThrough" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnGunAim(InputAction.CallbackContext context);
+        void OnFallThrough(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "8DirectionAim" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void On_8DirectionAim(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Run" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnRun(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "PrevWeapon" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPrevWeapon(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "NxtWeapon" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnNxtWeapon(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Menus" which allows adding and removing callbacks.

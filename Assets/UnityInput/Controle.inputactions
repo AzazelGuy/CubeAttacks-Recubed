@@ -7,7 +7,7 @@
             "id": "56724ef6-2059-4661-aae3-b7db4ca868df",
             "actions": [
                 {
-                    "name": "HorizontalMovent",
+                    "name": "Move",
                     "type": "Value",
                     "id": "e458e0fd-bba1-431c-ba7c-6f9a9933d797",
                     "expectedControlType": "Axis",
@@ -37,23 +37,63 @@
                     "priority": 0
                 },
                 {
-                    "name": "WeaponChange",
-                    "type": "Value",
-                    "id": "c5fcfb6f-442b-4967-b0bd-f43a46060043",
-                    "expectedControlType": "Axis",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true,
-                    "priority": 0
-                },
-                {
-                    "name": "GunAim",
+                    "name": "GunAimMouse",
                     "type": "Value",
                     "id": "640c6374-aba7-4e19-8300-0cd665219f8a",
                     "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true,
+                    "priority": 0
+                },
+                {
+                    "name": "FallThrough",
+                    "type": "Button",
+                    "id": "6bc7e52e-f4b3-4261-8f7c-173c2ed179e9",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "8DirectionAim",
+                    "type": "Value",
+                    "id": "473f72d5-729f-4b02-8699-61a1817a65a7",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true,
+                    "priority": 0
+                },
+                {
+                    "name": "Run",
+                    "type": "Button",
+                    "id": "fa5ef8f1-b67e-4fdb-a87a-68624ddd341e",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "PrevWeapon",
+                    "type": "Button",
+                    "id": "3fc49ea2-23e3-4d13-8801-966df0aad2b2",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "NxtWeapon",
+                    "type": "Button",
+                    "id": "062b8c1d-5833-4848-bfa0-1da34ee8f5f8",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
                     "priority": 0
                 }
             ],
@@ -65,7 +105,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "HorizontalMovent",
+                    "action": "Move",
                     "isComposite": true,
                     "isPartOfComposite": false
                 },
@@ -76,7 +116,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "HorizontalMovent",
+                    "action": "Move",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -87,7 +127,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "HorizontalMovent",
+                    "action": "Move",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -98,18 +138,18 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "HorizontalMovent",
+                    "action": "Move",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
                     "id": "092b87fa-f196-41e2-b825-bfe62e83f8e6",
-                    "path": "<Joystick>/stick/x",
+                    "path": "<Gamepad>/leftStick/x",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "HorizontalMovent",
+                    "action": "Move",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -126,8 +166,8 @@
                 },
                 {
                     "name": "",
-                    "id": "0072011e-2b50-405a-8be5-1378fd39c9c4",
-                    "path": "<Keyboard>/upArrow",
+                    "id": "53681c92-8839-4fd2-8408-dedaaaa59c93",
+                    "path": "<Gamepad>/buttonSouth",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -137,8 +177,8 @@
                 },
                 {
                     "name": "",
-                    "id": "53681c92-8839-4fd2-8408-dedaaaa59c93",
-                    "path": "<Gamepad>/buttonSouth",
+                    "id": "b3696d1c-28f6-4251-a348-13518f148baa",
+                    "path": "<Keyboard>/space",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -169,90 +209,123 @@
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "1D Axis Keyboard",
-                    "id": "8a3b8042-f602-4bd6-ab9f-529600d005da",
-                    "path": "1DAxis",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "WeaponChange",
-                    "isComposite": true,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "negative",
-                    "id": "2350758f-f6d3-4ca6-84ba-f4c164a8285b",
-                    "path": "<Keyboard>/q",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "WeaponChange",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "positive",
-                    "id": "1e69d407-d852-48fe-aeca-8f2c0cf68cdf",
-                    "path": "<Keyboard>/e",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "WeaponChange",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "1D Axis Controller",
-                    "id": "71070001-bed4-4f11-b8f6-d02c02d7b0ee",
-                    "path": "1DAxis",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "WeaponChange",
-                    "isComposite": true,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "negative",
-                    "id": "b6986398-7405-4dfb-a2dd-0cf9a729e709",
-                    "path": "<Gamepad>/leftShoulder",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "WeaponChange",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "positive",
-                    "id": "bb124042-fca9-4922-b6da-5ee33a5c32bb",
-                    "path": "<Gamepad>/rightShoulder",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "WeaponChange",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "",
-                    "id": "73bb30f3-0d40-488a-83c9-ea3aee988193",
-                    "path": "<Gamepad>/rightStick",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "GunAim",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
                     "name": "",
                     "id": "fa572028-aa10-4e09-b199-2f41867e9fff",
                     "path": "<Mouse>/position",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "GunAim",
+                    "action": "GunAimMouse",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5e4f0dc1-a427-4f7d-a740-2e3d4ac21d05",
+                    "path": "<Keyboard>/s",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "FallThrough",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8320d2b0-8e1c-4749-920e-2119d93ae05a",
+                    "path": "<Gamepad>/dpad/down",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "FallThrough",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "794f2684-b012-4cfd-a663-02235183c739",
+                    "path": "<Gamepad>/leftStick/down",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "FallThrough",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "4eb7047c-95f1-4beb-882e-bfe5756b2f3e",
+                    "path": "<Gamepad>/rightStick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "8DirectionAim",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "eb6a8ebd-4819-40d7-9048-4376a6d9610c",
+                    "path": "<Keyboard>/leftShift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Run",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "db07729f-f860-45da-b817-78ec1759fd36",
+                    "path": "<Gamepad>/leftTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Run",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b4596186-b24b-4ab5-ada2-31fe076edc64",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PrevWeapon",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d89f7d62-c9a5-4e9e-8732-ebdcbf040246",
+                    "path": "<Gamepad>/leftShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PrevWeapon",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "109d1256-fa57-482a-af6d-8bca0b74ab5a",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "NxtWeapon",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7ce18cef-dc69-4c61-96ab-9383e1340f5c",
+                    "path": "<Gamepad>/rightShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "NxtWeapon",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

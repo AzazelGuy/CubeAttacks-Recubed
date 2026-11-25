@@ -19,6 +19,7 @@ public class PlayerMovement : MonoBehaviour
 {
     #region Variáveis
 
+    Controle controle;
     // -------------------------------------------------------------------------
     // REFERÊNCIAS
     // -------------------------------------------------------------------------
@@ -52,8 +53,6 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float airSkid = 90f;
 
     [Header("Corrida")]
-    [Tooltip("Tecla de correr (segurar)")]
-    [SerializeField] KeyCode runKey = KeyCode.LeftShift;
     [Tooltip("Multiplicador da velocidade máxima correndo")]
     [SerializeField] float runSpeedMultiplier = 1.4f;
     [Tooltip("true: a corrida é decidida no chão e mantida durante o pulo (estilo Mario/Meat Boy)")]
@@ -185,18 +184,18 @@ public class PlayerMovement : MonoBehaviour
     int aimFacingDir;
 
     [Header("Wall Slide (descida progressiva)")]
-[Tooltip("wallSlideSpeed vira a velocidade INICIAL; ela sobe até este pico")]
-[SerializeField] float wallSlideMaxSpeed = 7f;
-[Tooltip("Tempo (s) deslizando até chegar no pico")]
-[SerializeField] float wallSlideRampTime = 0.6f;
+    [Tooltip("wallSlideSpeed vira a velocidade INICIAL; ela sobe até este pico")]
+    [SerializeField] float wallSlideMaxSpeed = 7f;
+    [Tooltip("Tempo (s) deslizando até chegar no pico")]
+    [SerializeField] float wallSlideRampTime = 0.6f;
 
-[Header("Wall Slide Up")]
-[Tooltip("Gravidade ao subir colado na parede (1 = igual ao ar livre, menor = perde velocidade mais devagar)")]
-[SerializeField, Range(0f, 1f)] float wallSlideUpGravityMultiplier = 0.5f;
+    [Header("Wall Slide Up")]
+    [Tooltip("Gravidade ao subir colado na parede (1 = igual ao ar livre, menor = perde velocidade mais devagar)")]
+    [SerializeField, Range(0f, 1f)] float wallSlideUpGravityMultiplier = 0.5f;
 
-float wallSlideTimer;
-float CurrentWallSlideLimit => Mathf.Lerp(wallSlideSpeed, wallSlideMaxSpeed,
-    Mathf.Clamp01(wallSlideTimer / Mathf.Max(0.01f, wallSlideRampTime)));
+    float wallSlideTimer;
+    float CurrentWallSlideLimit => Mathf.Lerp(wallSlideSpeed, wallSlideMaxSpeed,
+        Mathf.Clamp01(wallSlideTimer / Mathf.Max(0.01f, wallSlideRampTime)));
 
     [Header("Wall Jump correndo (bônus)")]
     [Tooltip("Multiplica a força HORIZONTAL do wall jump quando está correndo")]
@@ -242,7 +241,7 @@ float CurrentWallSlideLimit => Mathf.Lerp(wallSlideSpeed, wallSlideMaxSpeed,
     [HideInInspector] public bool moving = false;
 
     float xInput;
-    float yInput;
+    bool holdDown;
     int dir = 1;
 
     // Modificadores dinâmicos (upgrades)
@@ -277,8 +276,12 @@ float CurrentWallSlideLimit => Mathf.Lerp(wallSlideSpeed, wallSlideMaxSpeed,
         rb = GetComponent<Rigidbody2D>();
         col = GetComponent<CapsuleCollider2D>();
         waitStartTimer = waitStartTime;
+        controle = new Controle();
     }
 
+    void OnEnable() => controle.Gameplay.Enable();
+    void OnDisable() => controle.Gameplay.Disable();
+    void OnDestroy() => controle.Dispose();
     void Update()
     {
         // Sensores
@@ -317,12 +320,12 @@ float CurrentWallSlideLimit => Mathf.Lerp(wallSlideSpeed, wallSlideMaxSpeed,
 
     void ReadInput()
     {
-        xInput = Mathf.Round(Input.GetAxisRaw("Horizontal"));
-        yInput = Mathf.Round(Input.GetAxisRaw("Vertical"));
+        xInput = Mathf.Round(controle.Gameplay.Move.ReadValue<float>());
+        holdDown = controle.Gameplay.FallThrough.IsPressed();
 
         // Corrida: no chão acompanha o botão; no ar mantém o estado do último frame no chão
         if (isGrounded || !keepRunInAir)
-            runHeld = Input.GetKey(runKey);
+            runHeld = controle.Gameplay.Run.IsPressed();
     }
 
     void TickTimers()
@@ -341,15 +344,20 @@ float CurrentWallSlideLimit => Mathf.Lerp(wallSlideSpeed, wallSlideMaxSpeed,
 
     void HandleJumpInput()
     {
-        if (Input.GetButtonUp("Jump"))
+        if (controle.Gameplay.Jump.WasReleasedThisFrame())
             jumpCutRequested = true;
 
-        if (yInput < 0 && Input.GetButtonDown("Jump"))
+        // S sozinho: desce da plataforma
+        bool dropped = false;
+        if (controle.Gameplay.FallThrough.WasPressedThisFrame())
+            dropped = TryDropThroughPlatform();
+
+        if (controle.Gameplay.Jump.WasPressedThisFrame())
         {
-            TryDropThroughPlatform();
-        }
-        else if (Input.GetButtonDown("Jump"))
-        {
+            // S + pulo: também desce, e não pula
+            if (dropped || (holdDown && TryDropThroughPlatform()))
+                return;
+
             jumpBufferTimer = jumpBufferTime;
         }
     }
@@ -400,8 +408,8 @@ float CurrentWallSlideLimit => Mathf.Lerp(wallSlideSpeed, wallSlideMaxSpeed,
             coyoteTimer = coyoteTimeMax;
             currentJumpsRemaining = maxJumps; // recarrega os pulos ao tocar o chão
             fallTimer = 0f;
-wallSlideTimer = 0f;
-            if (!Input.GetButtonDown("Jump"))
+            wallSlideTimer = 0f;
+            if (!controle.Gameplay.Jump.WasPressedThisFrame())
                 rb.gravityScale = groundGravity;
 
             return;
@@ -413,9 +421,9 @@ wallSlideTimer = 0f;
         bool pressingIntoWall = hasHorizontalInput && Mathf.Sign(xInput) == wallDir;
 
         // Parede "livre": encostado, fora do bloqueio pós wall jump e sem pular agora
-        bool wallFree = onWall && wallJumpBlockTimer <= 0f && !Input.GetButtonDown("Jump");
+        bool wallFree = onWall && wallJumpBlockTimer <= 0f && !controle.Gameplay.Jump.WasPressedThisFrame();
 
-        bool wantsToClimb = wallFree && wallClimbEnabled && yInput > 0 && hasHorizontalInput;
+        bool wantsToClimb = wallFree && wallClimbEnabled && !holdDown && hasHorizontalInput;
         bool wantsToStick = wallFree && wallStickEnabled && pressingIntoWall && !isMovingUpward;
         bool wantsToSlide = wallFree && pressingIntoWall && !isMovingUpward;
         bool wantsToSlideUp = wallFree && pressingIntoWall && isMovingUpward;
@@ -435,20 +443,20 @@ wallSlideTimer = 0f;
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
         }
         else if (wantsToSlide)
-{
-    fallTimer = 0f;
-    wallSlideTimer += Time.deltaTime;   // NOVO: a velocidade vai somando
-    isWallSliding = true;
-    rb.gravityScale = wallSlideGravity;
-}
-else if (wantsToSlideUp)                // NOVO
-{
-    // Subindo colado na parede: perde velocidade mais devagar
-    fallTimer = 0f;
-    isWallSliding = true;
-    wallSlideTimer = 0f;
-    rb.gravityScale = GravityToScale(JumpGravity) * wallSlideUpGravityMultiplier;
-}
+        {
+            fallTimer = 0f;
+            wallSlideTimer += Time.deltaTime;   // NOVO: a velocidade vai somando
+            isWallSliding = true;
+            rb.gravityScale = wallSlideGravity;
+        }
+        else if (wantsToSlideUp)                // NOVO
+        {
+            // Subindo colado na parede: perde velocidade mais devagar
+            fallTimer = 0f;
+            isWallSliding = true;
+            wallSlideTimer = 0f;
+            rb.gravityScale = GravityToScale(JumpGravity) * wallSlideUpGravityMultiplier;
+        }
         else
         {
             // 4. Ar livre
@@ -522,7 +530,7 @@ else if (wantsToSlideUp)                // NOVO
         // para o chute não ser cancelado no mesmo instante.
         if (!isGrounded && wallJumpControlTimer > 0f)
             rate *= wallJumpAirControl;
-        
+
 
         bool idleOnSlope = onSlopeGround && (xInput == 0 || pushingIntoWall); //Agora não deve-se mover na parede e quicar, efetivamente parando, como devia
 
@@ -547,7 +555,7 @@ else if (wantsToSlideUp)                // NOVO
             rb.gravityScale = groundGravity;
     }
 
-    /// <summary>Escolhe a taxa (unidades/s²) conforme chão/ar/gelo e input.</summary>
+    /// <summary>Escolhe a taxa (unidades/s²) conforme chão/ar/gelo e controle.</summary>
     float GetMoveRate(bool reversing)
     {
         if (isGrounded)
@@ -609,7 +617,7 @@ else if (wantsToSlideUp)                // NOVO
 
             // Corrida é reavaliada no wall jump: segurar o botão de correr dá o bônus
             // (e mantém a velocidade de corrida durante o voo, se keepRunInAir estiver ligado)
-            runHeld = Input.GetKey(runKey);
+            runHeld = controle.Gameplay.Run.IsPressed();
 
             float horizontalMult = runHeld ? wallJumpRunHorizontalMultiplier : 1f;
             float verticalMult = runHeld ? wallJumpRunVerticalMultiplier : 1f;
@@ -731,17 +739,15 @@ else if (wantsToSlideUp)                // NOVO
     // =========================================================================
     #region Drop Through Platforms
 
-    void TryDropThroughPlatform()
+    bool TryDropThroughPlatform()
     {
-        if (!isGrounded || droppingThrough)
-            return;
+        if (!isGrounded || droppingThrough) return false;
 
         RaycastHit2D hit = Physics2D.Raycast(groundCheck.position, Vector2.down, groundDistance, platformLayer);
-
-        if (hit.collider == null)
-            return;
+        if (hit.collider == null) return false;
 
         StartCoroutine(DropThroughPlatform(hit.collider));
+        return true;
     }
 
     System.Collections.IEnumerator DropThroughPlatform(Collider2D platform)
@@ -872,6 +878,6 @@ else if (wantsToSlideUp)                // NOVO
         }
     }
 
-    
+
     #endregion
 }
